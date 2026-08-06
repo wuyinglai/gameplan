@@ -1,2 +1,6 @@
 # Office temporary/lock files
 ~$*
+
+# Local runtime data (not part of the game design docs)
+.hermes/
+.workbuddy/
