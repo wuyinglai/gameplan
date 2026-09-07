@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>余烬商队 · 200×200 地图编辑器</title>
+<style>
+  :root{
+    --bg:#f5f6f7; --panel:#ffffff; --line:#d8dce1; --text:#243039; --sub:#6b7580;
+    --accent:#2f6feb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+       background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden}
+  /* 左侧工具面板 */
+  #panel{width:290px;flex:0 0 290px;background:var(--panel);border-right:1px solid var(--line);
+         padding:14px;overflow-y:auto}
+  h1{font-size:15px;margin:0 0 4px}
+  .hint{font-size:11.5px;color:var(--sub);line-height:1.6;margin-bottom:12px}
+  .sec{font-size:12px;font-weight:700;color:var(--sub);margin:16px 0 7px;
+       border-bottom:1px solid var(--line);padding-bottom:4px}
+  .swatches{display:flex;flex-direction:column;gap:5px}
+  .sw{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1.5px solid var(--line);
+      border-radius:6px;cursor:pointer;background:#fff;font-size:12.5px;user-select:none}
+  .sw:hover{border-color:#b9c0c8}
+  .sw.on{border-color:var(--accent);background:#eef4ff}
+  .sw .dot{width:15px;height:15px;border-radius:3px;flex:0 0 15px;border:1px solid rgba(0,0,0,.18)}
+  .sw .nm{flex:1}
+  .sw .ct{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums}
+  .sw .ct.full{color:#c0392b;font-weight:700}
+  .sw .key{font-size:10px;color:#9aa3ab;border:1px solid var(--line);border-radius:3px;padding:0 4px}
+  .btn{display:block;width:100%;margin-top:6px;padding:7px 10px;font-size:12.5px;cursor:pointer;
+       border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--text)}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.pri:hover{filter:brightness(1.08);color:#fff}
+  .row{display:flex;gap:6px}
+  .row .btn{margin-top:6px}
+  #zoomRow{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);margin-top:8px}
+  #zoomRow input{flex:1}
+  /* 右侧画布 */
+  #stage{flex:1;overflow:auto;position:relative;background:#e9ecef}
+  #canvas{display:block;cursor:crosshair;image-rendering:pixelated;background:#fff;
+          box-shadow:0 1px 6px rgba(0,0,0,.12);margin:0}
+  #hud{position:sticky;top:0;left:0;z-index:5;background:rgba(255,255,255,.94);
+       border-bottom:1px solid var(--line);padding:6px 12px;font-size:12px;color:var(--sub);
+       display:flex;gap:18px;flex-wrap:wrap}
+  #hud b{color:var(--text);font-variant-numeric:tabular-nums}
+  #wrap{padding:10px;display:inline-block}
+  #tot{font-size:11.5px;color:var(--sub);margin-top:8px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<div id="panel">
+  <h1>余烬商队 · 地图编辑器</h1>
+  <div class="hint">
+    左键点格子 = 放置；按住拖动 = 连续放置；右键 = 擦除。<br>
+    <b>地形数量不限</b>：9 山 / 0 山地 / - 水 / [ 废墟 = 走不了；
+    <b>= 桥·林地 = 能走</b>（拿它跨河）。<br>
+    画大片地形：选好笔刷大小（默认 5×5）拖着画，
+    或勾「矩形填充」拖一个框一次填满；Alt+拖 = 擦掉整片。<br>
+    坐标原点在左上角，格式 <b>(x, y)</b>，范围 0–199。<br>
+    编辑内容<b>自动存本地</b>，关了页面也不丢。
+  </div>
+
+  <div class="sec">地点类型（点选后开始放）</div>
+  <div class="swatches" id="swatches"></div>
+
+  <div class="sec">绘制方式（画地形用）</div>
+  <div class="row" style="align-items:center;gap:8px;font-size:12px;color:var(--sub)">
+    <span>笔刷</span>
+    <select id="brush" style="flex:1;padding:4px;font-size:12px">
+      <option value="1">1×1（单点）</option>
+      <option value="2">2×2</option>
+      <option value="3">3×3</option>
+      <option value="5" selected>5×5</option>
+      <option value="10">10×10</option>
+      <option value="20">20×20</option>
+    </select>
+  </div>
+  <div style="font-size:12px;color:var(--sub);margin-top:7px">
+    <label style="cursor:pointer"><input type="checkbox" id="rectMode"> 矩形填充（拖出一片一次填满）</label>
+  </div>
+  <div style="font-size:12px;color:var(--sub);margin-top:7px">
+    <label style="cursor:pointer"><input type="checkbox" id="brushAll"> 笔刷只作用于空白格（不覆盖已有）</label>
+  </div>
+  <div class="row">
+    <button class="btn" id="clearTerrain">只清除全部地形/障碍</button>
+  </div>
+
+  <div class="sec">视图</div>
+  <div id="zoomRow">格子大小 <input type="range" id="zoom" min="3" max="14" value="6">
+    <b id="zoomV">6</b>px</div>
+  <div class="row">
+    <button class="btn" id="undo">撤销 (Ctrl+Z)</button>
+  </div>
+
+  <div class="sec">导出 / 导入</div>
+  <button class="btn pri" id="showTxt">生成可复制坐标文本（推荐）</button>
+  <div id="txtBox" style="display:none;margin-top:8px">
+    <textarea id="cmpOut" readonly rows="9"
+      style="width:100%;font-family:Consolas,monospace;font-size:11px;padding:6px;
+             border:1px solid var(--line);border-radius:6px;resize:vertical"></textarea>
+    <button class="btn" id="copyTxt">复制到剪贴板</button>
+    <div class="hint" style="margin-top:6px">
+      复制不成功就手动全选上面文本框（Ctrl+A → Ctrl+C），粘给 AI 即可。<br>
+      格式：<b>类型|x|y区间</b>，一行能装很多格，很短。
+    </div>
+  </div>
+  <button class="btn" id="expJson">导出 JSON（下载）</button>
+  <button class="btn" id="expMd">导出 Markdown（下载）</button>
+  <button class="btn" id="expTxt">复制纯文本坐标</button>
+  <button class="btn" id="impBtn">导入 JSON</button>
+  <input type="file" id="impFile" accept=".json" style="display:none">
+  <button class="btn" id="clear" style="color:#c0392b;border-color:#e8c4c0">清空全部</button>
+
+  <div id="tot"></div>
+</div>
+
+<div id="stage">
+  <div id="hud">
+    <span>光标：<b id="hPos">—</b></span>
+    <span>当前类型：<b id="hType">—</b></span>
+    <span>已放置：<b id="hCount">0</b></span>
+    <span style="color:#c0392b" id="hWarn"></span>
+  </div>
+  <div id="wrap"><canvas id="canvas"></canvas></div>
+</div>
+
+<script>
+const W = 200, H = 200;
+// 类型定义：key, 名称, 颜色, 上限, 快捷键
+const TYPES = [
+  {k:'big',    n:'大城（节点反应炉）', c:'#c0392b', lim:1,  key:'1'},
+  {k:'small',  n:'小城',               c:'#e67e22', lim:2,  key:'2'},
+  {k:'town',   n:'城镇',               c:'#f1c40f', lim:12, key:'3'},
+  {k:'inn1',   n:'驿站（有节点）',     c:'#27ae60', lim:4,  key:'4'},
+  {k:'inn0',   n:'驿站（损坏无节点）', c:'#95a5a6', lim:8,  key:'5'},
+  {k:'village',n:'村庄',               c:'#5dade2', lim:20, key:'6'},
+  {k:'ruinW',  n:'遗迹（产武器）',     c:'#8e44ad', lim:2,  key:'7'},
+  {k:'ruinM',  n:'遗迹（产记忆手册）', c:'#16a085', lim:2,  key:'8'},
+  {k:'block',  n:'障碍·山（不可通行）', c:'#34495e', lim:0,  key:'9', grp:'terrain'},
+  {k:'blk_wt', n:'地形·水 / 河湖（不可通行）', c:'#3d6fa8', lim:0, key:'-', grp:'terrain'},
+  {k:'blk_ru', n:'地形·废墟（不可通行）', c:'#8a7256', lim:0, key:'[', grp:'terrain'},
+  {k:'blk_mt', n:'地形·山地（不可通行）', c:'#6e6257', lim:0, key:'0', grp:'terrain'},
+  /* ↓ 可通行：桥 / 浅滩 / 林间小道，专门用来跨河 */
+  {k:'blk_fr', n:'通道·桥 / 林地（可通行）', c:'#4f7a3a', lim:0, key:'=', grp:'pass'}
+];
+const TMAP = {}; TYPES.forEach(t=>TMAP[t.k]=t);
+// 不可通行判定：block 与 blk_mt/blk_wt/blk_ru 算障碍；blk_fr（桥/林地）可通行
+const isBlock = k => k==='block' || k==='blk_mt' || k==='blk_wt' || k==='blk_ru';
+
+let cell = 6;                 // 每格像素
+let cur  = 'big';             // 当前类型
+const grid = new Map();       // "x,y" -> typeKey
+let undoStack = [];
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const bg = document.createElement('canvas');   // 背景（格线）离屏缓存
+const bgx = bg.getContext('2d');
+
+/* ---------- 尺寸 / 背景 ---------- */
+function resize(){
+  const w = W*cell, h = H*cell;
+  canvas.width=w; canvas.height=h; canvas.style.width=w+'px'; canvas.style.height=h+'px';
+  bg.width=w; bg.height=h;
+  drawBg(); render();
+}
+function drawBg(){
+  const g = bgx;
+  g.fillStyle='#fff'; g.fillRect(0,0,bg.width,bg.height);
+  g.lineWidth=1;
+  // 细线（格子够大才画，否则太糊）
+  if(cell>=5){
+    g.strokeStyle='#eef0f2'; g.beginPath();
+    for(let i=0;i<=W;i++){g.moveTo(i*cell+.5,0);g.lineTo(i*cell+.5,H*cell);}
+    for(let j=0;j<=H;j++){g.moveTo(0,j*cell+.5);g.lineTo(W*cell,j*cell+.5);}
+    g.stroke();
+  }
+  // 每 10 格粗线 + 坐标标注
+  g.strokeStyle='#c9d0d6'; g.beginPath();
+  for(let i=0;i<=W;i+=10){g.moveTo(i*cell+.5,0);g.lineTo(i*cell+.5,H*cell);}
+  for(let j=0;j<=H;j+=10){g.moveTo(0,j*cell+.5);g.lineTo(W*cell,j*cell+.5);}
+  g.stroke();
+  if(cell>=5){
+    g.fillStyle='#9aa3ab'; g.font='9px sans-serif';
+    for(let i=0;i<W;i+=10){ if(i>0) g.fillText(i, i*cell+2, 9); }
+    for(let j=0;j<H;j+=10){ if(j>0) g.fillText(j, 2, j*cell+9); }
+  }
+}
+function render(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(bg,0,0);
+  for(const [key,t] of grid){
+    const [x,y]=key.split(',').map(Number);
+    ctx.fillStyle=TMAP[t].c;
+    ctx.fillRect(x*cell, y*cell, cell, cell);
+    if(cell>=9){ // 大格时描边，更好看
+      ctx.strokeStyle='rgba(0,0,0,.25)'; ctx.lineWidth=1;
+      ctx.strokeRect(x*cell+.5,y*cell+.5,cell-1,cell-1);
+    }
+  }
+}
+
+/* ---------- 计数 ---------- */
+function counts(){
+  const c={}; TYPES.forEach(t=>c[t.k]=0);
+  for(const t of grid.values()) c[t]++;
+  return c;
+}
+function refreshUI(){
+  const c = counts();
+  document.querySelectorAll('.sw').forEach(el=>{
+    const k=el.dataset.k, t=TMAP[k];
+    el.classList.toggle('on', k===cur);
+    const ct=el.querySelector('.ct');
+    ct.textContent = t.lim ? c[k]+' / '+t.lim : c[k]+' / 不限';
+    ct.classList.toggle('full', t.lim>0 && c[k]>=t.lim);
+  });
+  document.getElementById('hCount').textContent = grid.size;
+  document.getElementById('hType').textContent = TMAP[cur].n;
+  // 统计文字
+  let s='';
+  TYPES.forEach(t=>{ if(c[t.k]>0) s += t.n+' <b>'+c[t.k]+'</b>'+(t.lim?'/'+t.lim:' 格（不限）')+'<br>'; });
+  let tb=0; for(const k of grid.values()) if(isBlock(k)) tb++;
+  if(tb) s += '— 不可通行合计 <b>'+tb+'</b> 格<br>';
+  document.getElementById('tot').innerHTML = s || '尚未放置任何地点。';
+}
+
+/* ---------- 放置 ---------- */
+let batchSeq = 0;                 // 一次笔刷/矩形 = 一批，撤销时整批回退
+function warn(msg){
+  const w=document.getElementById('hWarn');
+  w.textContent=msg; setTimeout(()=>w.textContent='',2200);
+}
+// 以 (x,y) 为中心的笔刷方块
+function brushCells(x,y){
+  const n=+(document.getElementById('brush').value||1);
+  const off=Math.floor((n-1)/2), out=[];
+  for(let dy=-off; dy<=n-1-off; dy++)
+    for(let dx=-off; dx<=n-1-off; dx++){
+      const xx=x+dx, yy=y+dy;
+      if(xx>=0&&yy>=0&&xx<W&&yy<H) out.push({x:xx,y:yy});
+    }
+  return out;
+}
+function rectCells(a,b){
+  const x0=Math.min(a.x,b.x), x1=Math.max(a.x,b.x);
+  const y0=Math.min(a.y,b.y), y1=Math.max(a.y,b.y);
+  const out=[];
+  for(let x=x0;x<=x1;x++) for(let y=y0;y<=y1;y++) out.push({x,y});
+  return out;
+}
+// 批量写入 cells；t=null 表示擦除
+function applyCells(cells,t){
+  const onlyEmpty = document.getElementById('brushAll').checked;
+  const lim = (t!==null && TMAP[t]) ? TMAP[t].lim : 0;
+  let cnt = lim>0 ? counts()[t] : 0, changed=false, blocked=false;
+  const bid = ++batchSeq;
+  for(const p of cells){
+    if(blocked) break;
+    const key=p.x+','+p.y, prev=grid.get(key)||null;
+    if(prev===t) continue;
+    if(t!==null){
+      if(lim>0 && cnt>=lim){ blocked=true; warn('「'+TMAP[t].n+'」已达上限 '+lim+'，先删掉一个再放'); break; }
+      if(onlyEmpty && prev!==null) continue;   // 只作用于空白格
+      cnt++;
+    }
+    undoStack.push({key, prev, next:t, bid});
+    if(t===null) grid.delete(key); else grid.set(key,t);
+    changed=true;
+  }
+  if(changed){ render(); refreshUI(); save(); }
+}
+function place(x,y,t){ applyCells(brushCells(x,y), t); }
+function undo(){
+  const a=undoStack.pop(); if(!a) return;
+  const bid=a.bid;
+  const restore=o=>{ if(o.prev===null) grid.delete(o.key); else grid.set(o.key,o.prev); };
+  restore(a);
+  // 同一批（一次笔刷/矩形）一起回退
+  while(undoStack.length && undoStack[undoStack.length-1].bid===bid) restore(undoStack.pop());
+  render(); refreshUI(); save();
+}
+
+/* ---------- 鼠标 ---------- */
+let drawing=false, rectStart=null, rectCur=null, rectErase=false;
+const isRect = ()=>document.getElementById('rectMode').checked;
+function cellAt(e){
+  const r=canvas.getBoundingClientRect();
+  const x=Math.floor((e.clientX-r.left)/(r.width/W));
+  const y=Math.floor((e.clientY-r.top)/(r.height/H));
+  if(x<0||y<0||x>=W||y>=H) return null;
+  return {x,y};
+}
+function drawPreview(){
+  render();
+  if(!rectStart||!rectCur) return;
+  const x0=Math.min(rectStart.x,rectCur.x), x1=Math.max(rectStart.x,rectCur.x);
+  const y0=Math.min(rectStart.y,rectCur.y), y1=Math.max(rectStart.y,rectCur.y);
+  ctx.save();
+  ctx.fillStyle = rectErase ? 'rgba(192,57,43,.28)' : 'rgba(47,111,235,.28)';
+  ctx.fillRect(x0*cell, y0*cell, (x1-x0+1)*cell, (y1-y0+1)*cell);
+  ctx.strokeStyle = rectErase ? '#c0392b' : '#2f6feb'; ctx.lineWidth=2;
+  ctx.strokeRect(x0*cell+1, y0*cell+1, (x1-x0+1)*cell-2, (y1-y0+1)*cell-2);
+  ctx.restore();
+  document.getElementById('hud').title='';
+}
+canvas.addEventListener('contextmenu',e=>{
+  e.preventDefault();
+  const p=cellAt(e); if(p) place(p.x,p.y,null);   // 右键按笔刷大小擦除
+});
+canvas.addEventListener('mousedown',e=>{
+  const p=cellAt(e); if(!p) return;
+  if(e.button===2) return;             // 右键交给 contextmenu
+  if(isRect()){ rectStart=p; rectCur=p; rectErase=e.altKey; drawPreview(); return; }
+  drawing=true;
+  place(p.x,p.y,cur);
+});
+window.addEventListener('mouseup',()=>{
+  if(rectStart&&rectCur){
+    applyCells(rectCells(rectStart,rectCur), rectErase?null:cur);
+    rectStart=null; rectCur=null; render();
+  }
+  drawing=false;
+});
+canvas.addEventListener('mousemove',e=>{
+  const p=cellAt(e);
+  document.getElementById('hPos').textContent = p ? '('+p.x+', '+p.y+')' : '—';
+  if(rectStart){ if(p){ rectCur=p; drawPreview(); } return; }
+  if(drawing && p) place(p.x,p.y,cur);
+});
+canvas.addEventListener('mouseleave',()=>document.getElementById('hPos').textContent='—');
+
+/* ---------- 面板 ---------- */
+const swBox=document.getElementById('swatches');
+TYPES.forEach(t=>{
+  const el=document.createElement('div');
+  el.className='sw'; el.dataset.k=t.k;
+  el.innerHTML='<span class="dot" style="background:'+t.c+'"></span>'+
+               '<span class="nm">'+t.n+'</span>'+
+               '<span class="ct"></span><span class="key">'+t.key+'</span>';
+  el.onclick=()=>{cur=t.k; refreshUI();};
+  swBox.appendChild(el);
+});
+window.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z'){e.preventDefault();undo();return;}
+  const t=TYPES.find(t=>t.key===e.key);
+  if(t){cur=t.k; refreshUI();}
+});
+document.getElementById('zoom').oninput=e=>{
+  cell=+e.target.value; document.getElementById('zoomV').textContent=cell; resize();
+};
+document.getElementById('undo').onclick=undo;
+document.getElementById('clear').onclick=()=>{
+  if(confirm('确定清空全部已放置的地点？')){grid.clear();undoStack=[];render();refreshUI();save();}
+};
+document.getElementById('clearTerrain').onclick=()=>{
+  const n=[...grid.values()].filter(isBlock).length;
+  if(!n){alert('当前没有地形/障碍。');return;}
+  if(confirm('清除全部 '+n+' 格地形/障碍？地点会保留。')){
+    for(const [k,v] of [...grid]) if(isBlock(v)) grid.delete(k);
+    undoStack=[]; render(); refreshUI(); save();
+  }
+};
+document.getElementById('brush').onchange=()=>{};
+document.getElementById('rectMode').onchange=e=>{
+  document.getElementById('brush').disabled=e.target.checked;
+};
+
+/* ---------- 存 / 取 ---------- */
+const LSK='ember_caravan_map_200';
+function save(){
+  const arr=[...grid].map(([k,t])=>{const[x,y]=k.split(',').map(Number);return{t,x,y};});
+  try{localStorage.setItem(LSK,JSON.stringify({w:W,h:H,locations:arr}));}catch(e){}
+}
+function load(){
+  try{
+    const s=localStorage.getItem(LSK); if(!s) return;
+    const d=JSON.parse(s);
+    grid.clear();
+    (d.locations||[]).forEach(o=>{ if(TMAP[o.t]) grid.set(o.x+','+o.y,o.t); });
+  }catch(e){}
+}
+function exportObj(){
+  const order=TYPES.map(t=>t.k);
+  const arr=[...grid].map(([k,t])=>{const[x,y]=k.split(',').map(Number);return{t,x,y};})
+    .sort((a,b)=>order.indexOf(a.t)-order.indexOf(b.t) || a.x-b.x || a.y-b.y);
+  return {map:{width:W,height:H},
+          note:'t = 地点类型。不可通行：block(山)、blk_mt(山地)、blk_wt(水)、blk_ru(废墟)。可通行：blk_fr(桥/林地)。数量均不限',
+          locations:arr};
+}
+/* 紧凑文本：类型|x|y区间，一行能装很多格 */
+function compactText(){
+  const d=exportObj(), byT={};
+  d.locations.forEach(o=>{
+    byT[o.t]=byT[o.t]||{};
+    (byT[o.t][o.x]=byT[o.t][o.x]||[]).push(o.y);
+  });
+  const lines=[];
+  TYPES.forEach(tt=>{
+    const g=byT[tt.k]; if(!g) return;
+    Object.keys(g).map(Number).sort((a,b)=>a-b).forEach(x=>{
+      const ys=g[x].sort((a,b)=>a-b), runs=[]; 
+      let s=ys[0], p=ys[0];
+      for(let i=1;i<ys.length;i++){
+        if(ys[i]===p+1){ p=ys[i]; }
+        else { runs.push(s===p?''+s:s+'-'+p); s=p=ys[i]; }
+      }
+      runs.push(s===p?''+s:s+'-'+p);
+      lines.push(tt.k+'|'+x+'|'+runs.join(','));
+    });
+  });
+  return lines.join('\n');
+}
+document.getElementById('showTxt').onclick=()=>{
+  const box=document.getElementById('txtBox'), out=document.getElementById('cmpOut');
+  out.value=compactText()||'（还没有放任何东西）';
+  box.style.display='block';
+  out.focus(); out.select();
+};
+document.getElementById('copyTxt').onclick=()=>{
+  const out=document.getElementById('cmpOut');
+  out.select();
+  const done=()=>alert('已复制，粘贴给 AI 就行。');
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(out.value).then(done,()=>{
+      try{ document.execCommand('copy'); done(); }
+      catch(e){ alert('自动复制被浏览器拦了，请手动 Ctrl+A / Ctrl+C。'); }
+    });
+  }else{
+    try{ document.execCommand('copy'); done(); }
+    catch(e){ alert('自动复制被浏览器拦了，请手动 Ctrl+A / Ctrl+C。'); }
+  }
+};
+
+function download(name,text,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([text],{type:type||'application/json;charset=utf-8'}));
+  a.download=name; a.rel='noopener'; a.style.display='none';
+  document.body.appendChild(a);          // 有些浏览器必须入 DOM 才触发
+  setTimeout(()=>{ a.click(); },0);
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },8000);
+}
+document.getElementById('expJson').onclick=()=>{
+  download('地图坐标.json', JSON.stringify(exportObj(),null,2));
+};
+document.getElementById('expMd').onclick=()=>{
+  const d=exportObj();
+  let md='# 测试版地图坐标（200×200，用户手工指定）\n\n';
+  md+='> 由「地图编辑器_200x200.html」导出。坐标格式 (x, y)，原点左上角。\n\n';
+  TYPES.forEach(t=>{
+    const list=d.locations.filter(o=>o.t===t.k);
+    if(!list.length) return;
+    md+='## '+t.n+'（'+list.length+(t.lim?'/'+t.lim:'')+'）\n\n';
+    md+='| # | 坐标 |\n|:-:|:--|\n';
+    list.forEach((o,i)=>md+='| '+(i+1)+' | ('+o.x+', '+o.y+') |\n');
+    md+='\n';
+  });
+  download('地图坐标.md', md, 'text/markdown;charset=utf-8');
+};
+document.getElementById('expTxt').onclick=()=>{
+  const d=exportObj(); let s='';
+  TYPES.forEach(t=>{
+    const list=d.locations.filter(o=>o.t===t.k); if(!list.length) return;
+    s+=t.n+'：'+list.map(o=>'('+o.x+','+o.y+')').join(' ')+'\n';
+  });
+  navigator.clipboard.writeText(s).then(()=>alert('坐标已复制到剪贴板：\n\n'+s),
+    ()=>prompt('复制失败，请手动复制：', s));
+};
+document.getElementById('impBtn').onclick=()=>document.getElementById('impFile').click();
+document.getElementById('impFile').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      grid.clear(); (d.locations||[]).forEach(o=>{ if(TMAP[o.t]) grid.set(o.x+','+o.y,o.t); });
+      render(); refreshUI(); save();
+      alert('导入成功，共 '+(d.locations||[]).length+' 个地点');
+    }catch(err){ alert('导入失败：不是合法的 JSON'); }
+  };
+  r.readAsText(f); e.target.value='';
+};
+
+/* ---------- 启动 ---------- */
+load(); resize(); refreshUI();
+</script>
+</body>
+</html>

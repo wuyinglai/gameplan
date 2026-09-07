@@ -4,3 +4,7 @@
 # Local runtime data (not part of the game design docs)
 .hermes/
 .workbuddy/
+
+# Python cache
+__pycache__/
+*.pyc
