@@ -206,7 +206,7 @@ ul{margin:6px 0 0;padding-left:20px}li{margin:3px 0}
 .mapwrap{background:#fff;border:1px solid #e3e0d5;border-radius:10px;padding:10px;display:inline-block}
 </style></head><body>
 <h1>余烬商队 · 地图体检报告</h1>
-<div class="sub">200 × 200 网格 · 1 格 = 1 天行程 · 按 2 格/天换算 · 生成自 地图坐标.txt</div>
+<div class="sub">200 × 200 网格 · 1 格 = 1 AP（每天 3 AP、满速 3 格/天、均速约 2 格/天）· 生成自 地图坐标.txt</div>
 
 <h2>一、总览</h2>
 <div class="cards">
@@ -292,7 +292,7 @@ def _advice(avg_r, pct, risky, spots, gap, D, origin):
         li = ''.join('<li><b>%s (%d, %d)</b>——最近补给 %d 格 ≈ %d 天</li>'
                      % (NAME[spots[p]], p[0], p[1], gap[p], gap[p] // 2) for p in risky)
         parts.append('<div class="box warn"><b>问题 2：%d 个地点超出补给续航</b><ul>%s</ul>'
-                     '<div style="margin-top:8px">12 人商队带的食物水撑不了 15 天以上，'
+                     '<div style="margin-top:8px">14 人商队带的食物水撑不了 15 天以上，'
                      '这几处驿站等于「到了也回不去」。<b>建议</b>：在它们附近补 1~2 个村庄/驿站，'
                      '或者把它们整体挪近主商路。</div></div>' % (len(risky), li))
 
