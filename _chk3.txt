@@ -1,0 +1,7 @@
+f83551d docs(2A): v2.8 restructure - separate xiaocheng chapter, dedup, history to appendix
+963afc1 chore: remove temp working files
+8709410 docs: move A-class appendices into dedicated folder A绫绘枃浠堕檮浠?+ index
+f6ef43c docs(1A): v5.8 slim - history moved to appendix, dedup, contradiction fixes
+
+remaining = 9
+2A len=8909 v2.8=2 章节=12
