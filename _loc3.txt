@@ -1,0 +1,10 @@
+OK 第0A类_体验总纲_ rm=3
+OK 第0A类_游戏介绍. rm=1
+OK 第10A类_订单与贸 rm=3
+OK 第3A类_商队资源与 rm=3
+OK 第4A类_战斗系统_ rm=3
+OK 第5A类_天气与事件 rm=3
+OK 第6A类_角色技能与 rm=3
+OK 第7A类_世界观与设 rm=3
+OK 第8A类_灰烬生态系 rm=3
+files changed=9
