@@ -1,3 +1,0 @@
-BACKUP-1A len=29548 lines=640 指针=10
-RESTORED len=29548 lines=640 指针=10 13节=0
-v5.8=4 定位=1 冲刺5格=0
