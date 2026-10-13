@@ -1,0 +1,15 @@
+=== 有窗口的进程（= 你正在用的程序）===
+  AMDInstallManager      | AMD Install Manager
+  clash-verge            | Clash Verge
+  msedge                 | 欢迎使用 ChatGPT 和另外 2 个页面 - 个人 - Microsoft​ Edge
+  TextInputHost          | Windows 输入体验
+  WindowsTerminal        | Windows PowerShell
+  WorkBuddy              | WorkBuddy
+
+=== 常见的编辑器/笔记类进程 ===
+  RUNNING: explorer  (标题: )
+  RUNNING: wps  (标题: )
+  RUNNING: wps  (标题: )
+
+=== 1A 文件的锁定情况 ===
+  可独占打开（当前无写锁定）

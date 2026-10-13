@@ -1,0 +1,22 @@
+=== 1A 现状 ===
+写入时间 = 15:23:59
+len=52934  lines=704  指针行=0
+判断: 已被覆盖!
+
+=== 附件 ===
+len=22376
+
+=== 游戏介绍（重写版，待 A 类改完再校订）===
+len=6456  lines=333
+
+=== WPS 是否还在运行 ===
+  仍在运行: PID 27624
+
+=== 有窗口的进程 ===
+  AMDInstallManager | AMD Install Manager
+  clash-verge | Clash Verge
+  msedge | 欢迎使用 ChatGPT 和另外 2 个页面 - 个人 - Microsoft​ Edge
+  Taskmgr | 任务管理器
+  TextInputHost | Windows 输入体验
+  WindowsTerminal | Windows PowerShell
+  WorkBuddy | WorkBuddy

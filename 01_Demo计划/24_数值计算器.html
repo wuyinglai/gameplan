@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>余烬商队 · 数值计算器 v3（全量数值 + 反推）</title>
+<style>
+:root{
+  --bg:#f5f6f8; --panel:#fff; --line:#e2e5e9; --line2:#eef0f3;
+  --text:#1c2024; --muted:#6b7280; --accent:#b4472e; --accent-soft:#fbf0ec;
+  --ok:#137a46; --warn:#9a6400; --bad:#b3261e;
+  --inbg:#fff; --th:#f3f5f7; --chg:#fff8e6; --chgbd:#e8c96a; --calc:#f2f7fb;
+}
+@media (prefers-color-scheme:dark){
+:root{ --bg:#141619; --panel:#1c1f23; --line:#2c3136; --line2:#242830;
+  --text:#e4e7ea; --muted:#98a0a8; --accent:#e07a5f; --accent-soft:#2a201d;
+  --ok:#4ec98a; --warn:#e0b054; --bad:#f2726a; --inbg:#22262b; --th:#23272c;
+  --chg:#31291a; --chgbd:#7a6428; --calc:#1e2a33; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:13.5px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased}
+header{padding:14px 22px 10px;border-bottom:1px solid var(--line);background:var(--panel);
+  position:sticky;top:0;z-index:20}
+h1{margin:0 0 4px;font-size:17px;font-weight:650;letter-spacing:.2px}
+h1 span{color:var(--accent)}
+header p{margin:0;color:var(--muted);font-size:12.5px}
+.actions{margin-top:9px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button,.filebtn,select.preset{font:inherit;font-size:12.5px;padding:5px 12px;border:1px solid var(--line);
+  border-radius:6px;background:var(--inbg);color:var(--text);cursor:pointer;transition:.15s}
+button:hover,.filebtn:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{opacity:.9;color:#fff}
+button.sm{padding:3px 9px;font-size:12px}
+label.sw{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted);cursor:pointer;user-select:none}
+main{display:grid;grid-template-columns:minmax(380px,500px) 1fr;align-items:start}
+@media (max-width:1100px){main{grid-template-columns:1fr}}
+.inputs{padding:14px 16px 60px;border-right:1px solid var(--line);height:calc(100vh - 112px);overflow:auto}
+.results{padding:14px 20px 80px;height:calc(100vh - 112px);overflow:auto}
+@media (max-width:1100px){.inputs,.results{height:auto;border-right:none;overflow:visible}}
+details{border:1px solid var(--line);border-radius:8px;margin:0 0 10px;background:var(--panel);overflow:hidden}
+details[open]{box-shadow:0 1px 2px rgba(0,0,0,.03)}
+summary{cursor:pointer;padding:8px 12px;font-size:12.5px;font-weight:650;color:var(--accent);
+  background:var(--th);user-select:none;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:'▸ ';color:var(--muted)}
+details[open]>summary::before{content:'▾ '}
+summary .cnt{float:right;color:var(--muted);font-weight:400}
+.dbody{padding:10px 12px 12px}
+.hint{font-size:11.5px;color:var(--muted);margin:0 0 8px;line-height:1.6}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{border-bottom:1px solid var(--line2);padding:4px 6px;text-align:right;white-space:nowrap}
+th{background:var(--th);font-weight:600;color:var(--muted);font-size:11.5px}
+th:first-child,td:first-child{text-align:left}
+input[type=number],select{width:100%;min-width:48px;font:inherit;font-size:12.5px;
+  padding:3px 5px;border:1px solid var(--line);border-radius:5px;background:var(--inbg);color:var(--text);text-align:right}
+input:focus,select:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+select{text-align:left}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px 10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px 10px}
+.f{display:flex;flex-direction:column;gap:2px}
+.f label{font-size:11.5px;color:var(--muted);line-height:1.35}
+.resgroup{margin-bottom:20px}
+.resgroup h2{font-size:13.5px;margin:0 0 2px;font-weight:650}
+.resgroup .sub{font-size:11.5px;color:var(--muted);margin:0 0 7px;line-height:1.6}
+.num{font-variant-numeric:tabular-nums}
+.calc{color:var(--accent);font-weight:650}
+.muted{color:var(--muted)}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+.warn{color:var(--warn)}
+.tag{display:inline-block;font-size:10.5px;padding:1px 6px;border-radius:20px;
+  background:var(--accent-soft);color:var(--accent);margin-left:6px;font-weight:500}
+.note{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.7}
+.note code,.chk code{background:var(--th);padding:1px 4px;border-radius:3px;font-size:11px}
+.chk{font-size:12px;line-height:1.95}
+.chk b{font-weight:650}
+td.chg{background:var(--chg);box-shadow:inset 0 0 0 1px var(--chgbd);border-radius:3px;font-weight:600}
+tbody tr.tot td{background:var(--calc);font-weight:650}
+.difftbl td{font-size:12px}
+.empty{padding:14px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);
+  font-size:12.5px;text-align:center}
+.solver{border:1px solid var(--accent);border-radius:8px;background:var(--accent-soft);padding:10px 12px}
+.solver .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.solver .out{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:12.5px;line-height:1.9}
+.big{font-size:16px;font-weight:700;color:var(--accent)}
+</style>
+</head>
+<body>
+<div style="padding:9px 22px;background:var(--accent-soft);border-bottom:1px solid var(--line);font-size:12.5px;line-height:1.6"><strong style="color:var(--accent)">数值状态：暂定（2026-09-22）</strong> · 本工具里<b>一切数字仅为参考</b>，不是约束、不是「此前已确认」、不构成任何设计承诺。<b>锚只有 3 项</b>：基础补给 10 金/份 · 中继点间距 ≈30 天 · 基础血量 100（准锚：遇敌频率）。数值的家：参数 = <code>04 §0.1 锚表</code> · 公式 = <code>23 数值推导规则</code> · 执行器 = 本文件。</div>
+<header>
+  <h1>余烬商队 · 数值计算器 <span>v3</span></h1>
+  <p>全部数值已搬入（锚表 A1~A14 · 编制 · 车辆 · 补给 · 物价 · 工资 · 订单 · 可达 · 恢复）。<strong>左边任何一格都能改</strong>，右边立刻重算并标出变化；底部<strong>反推器</strong>可由"目标消耗"倒推编制。</p>
+  <div class="actions">
+    <select class="preset" id="selPreset">
+      <option value="">套用预设…</option>
+      <option value="doc">文档基准（04 §0.7.2 / §0.7.8）</option>
+      <option value="flat300">单车恒 300（讨论稿）</option>
+    </select>
+    <button id="btnReset" class="primary">恢复默认</button>
+    <button id="btnSetBase">把当前设为基准</button>
+    <button id="btnExport">导出参数</button>
+    <label class="filebtn">导入参数<input type="file" id="fileImport" accept=".json" hidden></label>
+    <span id="dirtyTip" class="muted" style="font-size:12px"></span>
+  </div>
+</header>
+<main>
+  <section class="inputs" id="inputs"></section>
+  <section class="results" id="results"></section>
+</main>
+<script>
+"use strict";
+const LSKEY = 'ember_caravan_calc_v3';
+
+/* ============================================================
+   1. 默认参数 —— 严格对齐 04 / 0A 的现行值（出处见每个 hint）
+   ============================================================ */
+function makeBase(){ return {
+  global: {
+    /* 移动与野外（0A 第1A类 §2 / §5） */
+    scout:    10,     // 侦察一次耗点（🔴 只抬信息等级 +2，不给坐标）
+    act:      10,     // 采集 / 休整一次耗点
+    /* 🔴 2026-10-05：以下三项已作废（速度恒定·无提速档）。保留字段仅为兼容旧存档，不再参与计算，
+       每格消耗请在各阶段的 s.c 里填（恒定 20 + 天气/路况/车况加成）。 */
+    wheelStd: 20,     // [作废] 标准轮
+    wheelImp: 16,     // [作废] 改良轮
+    wheelFine:12,     // [作废] 精制轮
+    W0:      281,     // 满仓续航常数（格）：281 = 100% ÷ 0.355%/天
+    q0:      300,     // 基准单车格数（格/辆）
+
+    /* 编制与工资（04 §0.7.5） */
+    coreK:     4, coreF: 3, coreS: 0, coreSup: 7,   // 初期核心各岗（全核心·不领薪）
+    payK:     20, payF: 30, payS: 25, paySup: 15,   // 日薪：车夫/护卫/特殊/后勤人员（2026-10-06 起「帮工」「杂役」名称不存在）
+
+    /* 补给与物价（0A 第3A类 §1.3 / §3.2 + 第1A类 §10.1） */
+    foodPer:   1, waterPer: 1,                       // 每人每天 1 份食 + 1 份水（A7）
+    wDens:     3, wPrice: 8,                         // 水密度 3 份/格（固定）· 水价 8
+    durDay:   1.5, durBattle: 1.0, durGold: 5,       // 车损：地形 1.5 + 战斗摊销 1.0 耐久/车/天；5 金/耐久
+    medPer:  3.33,                                   // 药包摊销 金 / 战斗人 / 天（初期口径 10÷3）
+
+    /* 战斗与恢复（04 §0.6） */
+    hp0:100, hpMid:200, hpMax:300,                   // 血量基准 前/中/满
+    recN:0.20, recE:0.40,                            // 承伤 普通/精英（占血池）
+    alpha:0.5,                                       // 人数系数指数 √(3/N)^α
+    healGold:1.5,                                    // 据点治疗 金/血
+    self0:0.4, selfMax:1.0,                          // 野外自愈 血/天 初始/满级
+    b60:10, b60e:1,                                  // 60 天里的战斗场次（普通 10 场中含 1 精英）
+
+    /* 订单计价（04 §8） */
+    orderV:    2,                                    // 订单折算速度 格/天（04 §8「移动基准 2 格/天」）
+    dueK:    2.0,                                    // 期限系数兜底值（A11）—— 常态用各档 dueK，仅作缺省
+    dueKs: [2.0, 2.1, 2.2, 2.3]                      // 期限系数分档 短/中/长/超长（A11 · 2026-09-24）
+  },
+  /* 三阶段编成（04 §0.7.2 + §0.7.8） */
+  stages: [
+    { name:'前期', K: 4, emp:1, fight:3, spec:0, q:300, S:50, c:20, fDens:5, fPrice:10, refill:0, hp:100 },
+    { name:'中期', K: 7, emp:2, fight:4, spec:4, q:600, S:50, c:20, fDens:5, fPrice:10, refill:0, hp:200 },
+    { name:'后期', K:12, emp:4, fight:5, spec:5, q:900, S:50, c:20, fDens:5, fPrice:10, refill:0, hp:300 }
+  ],
+  /* 四档订单（04 §8.1） */
+  orders: [
+    { name:'短途', cells:120, stage:0, k:2.4, kp:2.0 },
+    { name:'中途', cells:200, stage:1, k:2.7, kp:2.1 },
+    { name:'长途', cells:300, stage:2, k:3.0, kp:2.2 },
+    { name:'超长', cells:500, stage:2, k:3.6, kp:2.3 }
+  ],
+  /* 支出端天数系数（23 §7.2） */
+  price: { equip:12, ember:15, truck:20, hire:25 },
+
+  /* 反推器状态 */
+  solver: { stage:2, mode:'cost', target:1500 }
+};}
+
+let BASE = makeBase();
+let CFG  = makeBase();
+
+/* ============================================================
+   2. 计算核心（照 23 的公式 + 04 的锚）
+   ============================================================ */
+const num = x => { const v = Number(x); return isFinite(v)? v : 0; };
+
+function compute(cfg){
+  const g = cfg.global;
+
+  const stages = cfg.stages.map((s,i)=>{
+    const K    = Math.max(0, num(s.K));                       // 车数 = 车夫数（§3.1①）
+    const emp  = Math.min(num(s.emp), K);                     // 载人单车（不计耐久、不载货）
+    const truck= Math.max(0, K - emp);                        // 计耐久货车（§2.4）
+    const sup  = K + num(s.fight) + num(s.spec);              // 后勤 = 三者之和（§3.1②）
+    const P    = 2 * sup;                                     // 总人数 = 2×编制（§3.1③）
+    const v    = num(s.c) ? Math.round((num(s.S) - num(g.scout)) / num(s.c)) : 0;   // §2.1
+    const ref  = num(s.refill) / 100;
+
+    /* 补给（§4）：钱一笔、格一笔 */
+    const supUnit = num(s.fPrice)*num(g.foodPer) + num(g.wPrice)*num(g.waterPer)*(1-ref);  // 金/人/天
+    const goldSup = P * supUnit;
+    const cellFood  = num(s.fDens) ? P*num(g.foodPer)/num(s.fDens) : 0;
+    const cellWater = num(g.wDens) ? P*num(g.waterPer)*(1-ref)/num(g.wDens) : 0;
+    const cellSup   = cellFood + cellWater;
+
+    /* 工资（§3.3 增量式：只算超出初期核心的部分） */
+    const wage =
+        Math.max(0, K          - num(g.coreK))   * num(g.payK)
+      + Math.max(0, num(s.fight)- num(g.coreF))  * num(g.payF)
+      + Math.max(0, num(s.spec) - num(g.coreS))  * num(g.payS)
+      + Math.max(0, sup        - num(g.coreSup))* num(g.paySup);
+
+    /* 车损 + 药包（§5.2 / §5.3） */
+    const loss = truck * (num(g.durDay) + num(g.durBattle)) * num(g.durGold);
+    const med  = num(s.fight) * num(g.medPer);
+
+    const H = goldSup + wage + loss + med;                     // 硬账（§5.1）
+
+    /* 车辆与距离（§2.6 / 04 §0.7.8） */
+    const cargo = truck * num(s.q);
+    const reach = (K + num(s.fight) + num(s.spec)) > 0
+        ? (num(g.W0)/2) * (num(s.q)/num(g.q0 || 300)) * K / (K + num(s.fight) + num(s.spec))
+        : 0;
+    const reachTotal = reach * 2;                              // 往返全程
+
+    return {...s, i, K, emp, truck, sup, P, v, ref, supUnit, goldSup,
+            cellFood, cellWater, cellSup, wage, loss, med, H, cargo, reach, reachTotal};
+  });
+
+  /* 订单（§6） */
+  const orders = cfg.orders.map(o=>{
+    const st  = stages[o.stage] || stages[0];
+    const Hd  = st.H;                                          // 定价基准硬账 = 该档应有规模的硬账
+    const T   = num(g.orderV) ? num(o.cells) / num(g.orderV) : 0;   // 天数（04 §8 均速 2 格/天）
+    const unit= Hd * num(o.k);                                 // 固定单价 金/天
+    const per = st.v ? unit / st.v : 0;                        // 金/格
+    const pay = T * unit;                                      // 报酬 = 总消耗 × 倍率
+    const cost= T * Hd;                                        // 消耗（按基准规模）
+    const due = T * num(o.kp != null ? o.kp : g.dueK);          // 期限（按档 · A11 分档）
+    return {...o, stageName:st.name, Hd, T, unit, per, pay, cost, due,
+            profit: pay-cost, profitDay: T ? (pay-cost)/T : 0, expectDay: Hd*(num(o.k)-1)};
+  });
+
+  let acc = 0;                                                 // 叠加（§6.3）
+  orders.forEach(o=>{ acc += o.pay; o.stackPay = acc; });
+
+  const prices = orders.map(o=>({
+    name:o.name, day:o.profitDay,
+    equip:o.profitDay*num(cfg.price.equip),
+    ember:o.profitDay*num(cfg.price.ember),
+    truck:o.profitDay*num(cfg.price.truck),
+    hire: o.profitDay*num(cfg.price.hire)
+  }));
+
+  /* 恢复（§0.6.3）：60 天要补多少血 */
+  const rec = stages.map((s,i)=>{
+    const hp = num(s.hp);
+    const N  = Math.max(1, num(s.fight));
+    const coef = Math.pow(3/N, num(g.alpha));
+    const perHit = hp * num(g.recN) * coef;
+    const battles = Math.max(0, num(g.b60)), elites = Math.max(0, num(g.b60e));
+    const teamLoss = ((battles-elites)*hp*num(g.recN)*coef + elites*hp*num(g.recE)*coef) * N;
+    const kitLine  = num(g.medPer)*N*60/50;                  // 药包折算（包数）
+    const kitBlood = kitLine * hp*num(g.recN);               // 一包回 20% 血池
+    const healGold60 = teamLoss * num(g.healGold);
+    const selfDays = num(g.self0) ? perHit/num(g.self0) : 0;
+    const selfDaysMax = num(g.selfMax) ? perHit/num(g.selfMax) : 0;
+    return {name:s.name, hp, N, coef, perHit, teamLoss, kitLine, kitBlood, healGold60, selfDays, selfDaysMax};
+  });
+
+  return {stages, orders, prices, rec};
+}
+
+/* ============================================================
+   3. 反推器：给目标 → 求车数
+   ============================================================ */
+function solve(cfg, si, mode, target){
+  const g = cfg.global, s = cfg.stages[si] || cfg.stages[0];
+  const F = num(s.fight), S = num(s.spec), q = num(s.q);
+  const ref = num(s.refill)/100;
+  const supUnit = num(s.fPrice)*num(g.foodPer) + num(g.wPrice)*num(g.waterPer)*(1-ref);
+  const durUnit = (num(g.durDay)+num(g.durBattle))*num(g.durGold);
+
+  const dep = K0=>{                                   // 给定车数，算出全套
+    const K   = Math.max(0, K0);
+    const emp = Math.min(num(s.emp), K);
+    const tru = Math.max(0, K - emp);
+    const sup = K + F + S;
+    const P   = 2*sup;
+    const v   = num(s.c) ? Math.round((num(s.S)-num(g.scout))/num(s.c)) : 0;
+    const wage= Math.max(0,K-num(g.coreK))*num(g.payK)
+              + Math.max(0,F-num(g.coreF))*num(g.payF)
+              + Math.max(0,S-num(g.coreS))*num(g.payS)
+              + Math.max(0,sup-num(g.coreSup))*num(g.paySup);
+    const goldSup = P*supUnit;
+    const loss= tru*durUnit;
+    const med = F*num(g.medPer);
+    const H   = goldSup+wage+loss+med;
+    const cargo = tru*q;
+    const reach = sup>0 ? (num(g.W0)/2)*(q/num(g.q0||300))*K/sup : 0;
+    return {K, emp, truck:tru, sup, P, v, wage, goldSup, loss, med, H, cargo, reach,
+            cellFood: num(s.fDens)? P*num(g.foodPer)/num(s.fDens):0,
+            cellWater: num(g.wDens)? P*num(g.waterPer)*(1-ref)/num(g.wDens):0};
+  };
+  const d0 = dep(0);
+  d0.cellSup = d0.cellFood + d0.cellWater;
+  d0.unitSup = supUnit;
+
+  const T = num(target);
+  let K = 0, note = '';
+
+  if(mode==='people'){                       // 目标总人数 → 车数
+    K = Math.ceil(T/2 - F - S);
+  }else if(mode==='cargo'){                  // 目标总货舱 → 车数
+    K = (q>0 ? Math.ceil(T/q) : 0) + Math.min(num(s.emp), 1e9);
+  }else if(mode==='reach'){                  // 目标单程可达天数 → 车数
+    const C = (num(g.W0)/2)*(q/num(g.q0||300));
+    if(T>0 && C>T){ K = Math.ceil(T*(F+S)/(C-T)); }
+    else { K = 0; note = '该续航常数下，此距离不可达（先把每车格数 / 续航常数提上去）'; }
+  }else if(mode==='cost'){                   // 目标日硬账 → 车数（二分，H 随 K 单调不减）
+    let lo = 0, hi = 400;
+    const H0 = dep(0).H;
+    if(H0 > T){
+      K = 0;
+      note = `目标低于最低可能值（${Math.round(H0)} 金/天）：一辆车都不带时，光 ${F} 战斗 + ${S} 特殊 这些人的嘴就已经要这么多。想压下来只能减战斗 / 特殊。`;
+    }else if(dep(hi).H <= T){
+      K = hi; note = '目标偏高，超出搜索上限（400 辆），已取上限。';
+    }else{
+      for(let it=0; it<80; it++){ const mid=Math.floor((lo+hi)/2);
+        if(dep(mid).H <= T) lo=mid; else hi=mid; if(hi-lo<=1) break; }
+      K = lo;
+    }
+  }
+
+  const d = dep(K);
+  d.cellSup = d.cellFood + d.cellWater;
+  d.unitSup = supUnit;
+  d.note = note;
+  d.target = T;
+  d.mode = mode;
+  d.dH = K>0 ? d.H - dep(K-1).H : (dep(1).H - dep(0).H);
+  return d;
+}
+
+/* ============================================================
+   4. 格式化
+   ============================================================ */
+function fmt(x){
+  if(x===null||x===undefined||!isFinite(x)) return '—';
+  const v = Number(x);
+  if(Math.abs(v) >= 1e6) return (v/1e4).toLocaleString('zh-CN',{maximumFractionDigits:1})+'万';
+  const d = Math.abs(v) >= 100 ? 0 : (Math.abs(v) >= 10 ? 1 : 2);
+  return v.toLocaleString('zh-CN',{maximumFractionDigits:d});
+}
+function exact(x){
+  if(!isFinite(x)) return '—';
+  return (Math.round(x*100)/100).toLocaleString('zh-CN',{maximumFractionDigits:2});
+}
+const EL = (t,a={},h='')=>{ const e=document.createElement(t);
+  for(const k in a) e.setAttribute(k,a[k]); if(h) e.innerHTML=h; return e; };
+
+/* ============================================================
+   5. 渲染输入
+   ============================================================ */
+function F(path,label,val,extra=''){
+  return `<div class="f"><label>${label}${extra}</label>
+    <input type="number" step="any" data-path="${path}" value="${val}"></div>`;
+}
+function row2(pathA,labA,valA,pathB,labB,valB){
+  return F(pathA,labA,valA) + F(pathB,labB,valB);
+}
+
+function renderInputs(){
+  const box = document.getElementById('inputs');
+  box.innerHTML = '';
+  const g = CFG.global;
+
+  /* ① 移动与野外 */
+  let h = `<details open><summary>① 移动 · 野外体力 <span class="cnt">0A 第1A类 §2 / §5</span></summary><div class="dbody">`;
+  h += `<p class="hint">v = round((S − 侦察) ÷ c)；冲刺 v* = round((S_max − 侦察) ÷ c)。<b>S = 日回 50 · S_max = 池上限 100（固定，与人数无关）</b>、<b>c = 每格消耗（恒定 20，无提速档）</b> —— 叠加「攒池」就是第三个旋钮。</p>`;
+  h += `<div class="grid3">`;
+  h += F('global.scout','侦察一次（点）',g.scout) + F('global.act','采集/休整（点）',g.act) + F('global.q0','基准单车格数（格）',g.q0);
+  h += F('global.W0','续航常数 W0（格）',g.W0) + F('global.orderV','订单折算速度（格/天）',g.orderV) + `<span class="muted" style="font-size:11.5px">期限系数 k_期（2.0/2.1/2.2/2.3）在 ⑥ 表内逐档设</span>`;
+  h += `</div><p class="note">🔴 <b>速度恒定：每格 c 恒为 20，没有任何提速档</b>（<b>日回 50 点 = 2.5 格/天；池攒满 100 点冲刺 = 5 格</b>）。<br>原「车轮三档 20/ 16 / 12 → 2.5 / 3.1 / 4.2 格」<b>已于 2026-10-05 作废</b>（用户裁定：否则后期会被无限拉长）—— 车轮从此只是车况项（磨损 / 爆裂 / 陷车 → <b>变慢</b>），不再是提速档。c 只在② 阶段的「每格消耗 c」里按阶段填（含天气 / 路况 / 车况加成）。<br>🔴 野外池 = 车队固定池（上限 100 · 日回 50），<b>与人数 / 个体无关</b>。</p>`;
+  h += `</div></details>`;
+  box.insertAdjacentHTML('beforeend', h);
+
+  /* ② 三阶段编成 */
+  h = `<details open><summary>② 三阶段编成（车 · 人） <span class="cnt">04 §0.7.2 / §0.7.8</span></summary><div class="dbody">`;
+  h += `<p class="hint">只填<b>车数 / 载人车 / 战斗 / 特殊</b>四项，其余全部自动算：货车 = 车数 − 载人车；后勤 = 三者之和；总人数 = 2×编制。<br>
+  ⚠️ 文件里「特殊人员」的个数是<b>示例</b>，不是规定 —— 这里改成几就是几。</p>`;
+  h += `<div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap">
+    <button class="sm" data-preset="doc">文档基准 4/7/12 车 · 300/600/900 格</button>
+    <button class="sm" data-preset="flat300">单车恒 300 · 4/6/18 车</button>
+    <button class="sm" data-preset="none">清空为 0</button></div>`;
+  h += `<table><thead><tr><th>阶段</th><th>车数=车夫</th><th>载人车</th><th>战斗</th><th>特殊</th>
+    <th>货车</th><th>后勤</th><th>总人数</th></tr></thead><tbody>`;
+  CFG.stages.forEach((s,i)=>{
+    const K = num(s.K), emp = Math.min(num(s.emp),K), truck = Math.max(0,K-emp);
+    const sup = K+num(s.fight)+num(s.spec), P = 2*sup;
+    h += `<tr><td><b>${s.name}</b></td>
+      <td>${F('stages.'+i+'.K','',s.K)}</td>
+      <td>${F('stages.'+i+'.emp','',s.emp)}</td>
+      <td>${F('stages.'+i+'.fight','',s.fight)}</td>
+      <td>${F('stages.'+i+'.spec','',s.spec)}</td>
+      <td class="muted calc-${i}-truck">${truck}</td>
+      <td class="muted calc-${i}-sup">${sup}</td>
+      <td class="calc calc-${i}-P">${P}</td></tr>`;
+  });
+  h += `</tbody></table>`;
+  h += `<p class="note">初期 14 人是<b>算出来的</b>（4 车 → 车夫 4 → 后勤 7 → 总 14），不是卡出来的。</p>`;
+  h += `</div></details>`;
+  box.insertAdjacentHTML('beforeend', h);
+
+  /* ③ 阶段锚（速度 · 车格 · 补给） */
+  h = `<details open><summary>③ 阶段锚：体力 · 车格 · 补给 <span class="cnt">锚 A1/A2/A8/A9</span></summary><div class="dbody">`;
+  h += `<p class="hint">每车格数 = 货物能装多少；食密度 = 1 格装几份粮；粮价 = 每份多少钱。补水率 = 沿途免费取水比例（水费打折）。<br>
+  ⚠️ <b>密度是「玩家每次出发自选」的档位，不绑阶段</b>（23 §4.3）—— 默认三阶段都用<b>低档</b>，所以硬账与 04 §0.3 的 300 / 934 / 1493 一致。想试高档用下面按钮一键切。</p>`;
+  h += `<div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap">
+    <button class="sm" data-tier="low">补给·低档（密度 5 · 粮价 10）</button>
+    <button class="sm" data-tier="mid">补给·中档（10 · 30）</button>
+    <button class="sm" data-tier="high">补给·高档（20 · 100）</button></div>`;
+  h += `<table><thead><tr><th>阶段</th><th>S 体力</th><th>c 每格</th><th>v</th><th>每车格数</th><th>食密度</th><th>粮价</th><th>水价/补水%</th><th>血池</th></tr></thead><tbody>`;
+  CFG.stages.forEach((s,i)=>{
+    const v = num(s.c)?Math.round((num(s.S)-num(g.scout))/num(s.c)):0;
+    h += `<tr><td><b>${s.name}</b></td>
+      <td>${F('stages.'+i+'.S','',s.S)}</td>
+      <td>${F('stages.'+i+'.c','',s.c)}</td>
+      <td class="calc v-${i}">${v}</td>
+      <td>${F('stages.'+i+'.q','',s.q)}</td>
+      <td>${F('stages.'+i+'.fDens','',s.fDens)}</td>
+      <td>${F('stages.'+i+'.fPrice','',s.fPrice)}</td>
+      <td>${F('stages.'+i+'.refill','',s.refill)}</td>
+      <td>${F('stages.'+i+'.hp','',s.hp)}</td></tr>`;
+  });
+  h += `</tbody></table>`;
+  h += `<div class="grid2" style="margin-top:8px">`;
+  h += F('global.foodPer','每人每天食物（份）',g.foodPer) + F('global.waterPer','每人每天水（份）',g.waterPer);
+  h += F('global.wDens','水密度（份/格·固定）',g.wDens) + F('global.wPrice','水价（金/份）',g.wPrice);
+  h += `</div>`;
+  h += `</div></details>`;
+  box.insertAdjacentHTML('beforeend', h);
+
+  /* ④ 工资 · 车损 · 药包 */
+  h = `<details><summary>④ 工资 · 车损 · 药包 <span class="cnt">04 §0.7.5 / §0.3</span></summary><div class="dbody">`;
+  h += `<p class="hint">工资用<b>增量式</b>：只算超出「初期核心」的人 —— 老账不重算，改锚点不会把开局的人一起卷进去。</p>`;
+  h += `<div class="grid2">`;
+  h += F('global.payF','日薪·护卫',g.payF) + F('global.payS','日薪·特殊',g.payS);
+  h += F('global.payK','日薪·车夫',g.payK) + F('global.paySup','日薪·后勤人员',g.paySup);
+  h += F('global.coreF','初期核心·战斗（不领薪）',g.coreF) + F('global.coreK','初期核心·车夫',g.coreK);
+  h += F('global.coreS','初期核心·特殊',g.coreS) + F('global.coreSup','初期核心·后勤',g.coreSup);
+  h += F('global.durDay','车损·地形（耐久/车/天）',g.durDay) + F('global.durBattle','车损·战斗摊销',g.durBattle);
+  h += F('global.durGold','修车（金/耐久·=50金÷10耐久）',g.durGold) + F('global.medPer','药包（金/战斗人/天）',g.medPer);
+  h += `</div></details>`;
+  box.insertAdjacentHTML('beforeend', h);
+
+  /* ⑤ 战斗与恢复 */
+  h = `<details><summary>⑤ 战斗与恢复 <span class="cnt">04 §0.6</span></summary><div class="dbody">`;
+  h += `<p class="hint">承伤 = 血池百分比 × 人数系数 √(3÷N)^α —— 比例永久不变，变的只是血池与敌人档次。</p>`;
+  h += `<div class="grid2">`;
+  h += F('global.recN','承伤·普通（占血池）',g.recN) + F('global.recE','承伤·精英',g.recE);
+  h += F('global.alpha','人数系数指数 α',g.alpha) + F('global.healGold','据点治疗（金/血）',g.healGold);
+  h += F('global.b60','60 天战斗场次',g.b60) + F('global.b60e','　其中精英场次',g.b60e);
+  h += F('global.self0','野外自愈·初始（血/天）',g.self0) + F('global.selfMax','野外自愈·满级',g.selfMax);
+  h += F('global.hp0','血池·前期',g.hp0) + F('global.hpMid','血池·中期',g.hpMid);
+  h += F('global.hpMax','血池·满强化',g.hpMax) + `<div></div>`;
+  h += `</div></details>`;
+  box.insertAdjacentHTML('beforeend', h);
+
+  /* ⑥ 四档订单 */
+  h = `<details open><summary>⑥ 四档订单 <span class="cnt">04 §8.1</span></summary><div class="dbody">`;
+  h += `<p class="hint">报酬 = 该档<b>总消耗 × 档位倍率 k_档</b>；期限 = 天数 × <b>k_期</b>（分档）。定价基准阶段 = 用哪一档的硬账当分母（短途用前期、中途用中期、长途/超长用后期）。</p>`;
+  h += `<table><thead><tr><th>档</th><th>格数</th><th>定价基准</th><th>倍率 k_档</th><th>期限 k_期</th><th>天数</th><th>单价/天</th></tr></thead><tbody>`;
+  CFG.orders.forEach((o,i)=>{
+    const opts = CFG.stages.map((s,si)=>`<option value="${si}"${si==o.stage?' selected':''}>${s.name}</option>`).join('');
+    const st = CFG.stages[o.stage]||CFG.stages[0];
+    const T  = num(g.orderV)? num(o.cells)/num(g.orderV):0;
+    h += `<tr><td><b>${o.name}</b></td>
+      <td>${F('orders.'+i+'.cells','',o.cells)}</td>
+      <td><select data-path="orders.${i}.stage">${opts}</select></td>
+      <td>${F('orders.'+i+'.k','',o.k)}</td>
+      <td>${F('orders.'+i+'.kp','',o.kp)}</td>
+      <td class="muted t-${i}">${T.toFixed(1)}</td>
+      <td class="muted u-${i}">—</td></tr>`;
+  });
+  h += `</tbody></table></div></details>`;
+  box.insertAdjacentHTML('beforeend', h);
+
+  /* ⑦ 支出端系数 */
+  h = `<details><summary>⑦ 支出端天数系数 <span class="cnt">23 §7.2</span></summary><div class="dbody">`;
+  h += `<p class="hint">物价 = 该档日净收益 × 天数。系数一变，全线价目跟着变 —— <b>这是经济松紧的唯一旋钮</b>。</p>`;
+  h += `<div class="grid2">`;
+  h += F('price.equip','装备（天）',CFG.price.equip) + F('price.ember','火种（天）',CFG.price.ember);
+  h += F('price.truck','加挂货车（天）',CFG.price.truck) + F('price.hire','招募（天）',CFG.price.hire);
+  h += `</div></details>`;
+  box.insertAdjacentHTML('beforeend', h);
+
+  /* ⑧ 反推器 */
+  const sv = CFG.solver;
+  const modes = [['cost','目标日硬账（金/天）'],['people','目标总人数（人）'],
+                 ['cargo','目标总货舱（格）'],['reach','目标单程可达（天）']];
+  h = `<details open><summary>⑧ 反推器（改消耗 → 倒推编制） <span class="cnt">新功能</span></summary><div class="dbody">`;
+  h += `<div class="solver"><p class="hint" style="color:inherit">选一个<b>目标</b>，算出「要几辆车」。战斗与特殊仍取该阶段当前值，只有车数未知。</p>`;
+  h += `<div class="row">
+    <div class="f"><label>阶段</label><select data-path="solver.stage">
+      ${CFG.stages.map((s,i)=>`<option value="${i}"${i==sv.stage?' selected':''}>${s.name}</option>`).join('')}</select></div>
+    <div class="f"><label>反推目标</label><select data-path="solver.mode">
+      ${modes.map(([v,l])=>`<option value="${v}"${v==sv.mode?' selected':''}>${l}</option>`).join('')}</select></div>
+    <div class="f"><label>目标值</label><input type="number" step="any" data-path="solver.target" value="${sv.target}"></div>
+  </div>
+  <div class="out" id="solverOut"></div></div>`;
+  h += `</div></details>`;
+  box.insertAdjacentHTML('beforeend', h);
+
+  /* 绑定 */
+  box.querySelectorAll('input[data-path]').forEach(n=>n.addEventListener('input', onEdit));
+  box.querySelectorAll('select[data-path]').forEach(n=>n.addEventListener('change', onEdit));
+  box.querySelectorAll('button[data-preset]').forEach(b=>b.addEventListener('click', ()=>{
+    applyPreset(b.dataset.preset); saveLocal(); renderInputs(); renderResults(); markDirty();
+  }));
+  box.querySelectorAll('button[data-tier]').forEach(b=>b.addEventListener('click', ()=>{
+    applySupplyTier(b.dataset.tier); saveLocal(); renderInputs(); renderResults(); markDirty();
+  }));
+}
+
+function onEdit(e){
+  const path = e.target.dataset.path;
+  setPath(CFG, path, e.target.value === '' ? 0 : num(e.target.value));
+  saveLocal(); renderResults(); markDirty();
+  /* 局部刷新输入区里那些"即时预览"的小格 */
+  const box = document.getElementById('inputs');
+  CFG.stages.forEach((s,i)=>{
+    const K=num(s.K), emp=Math.min(num(s.emp),K), truck=Math.max(0,K-emp);
+    const sup=K+num(s.fight)+num(s.spec), P=2*sup;
+    const v=num(s.c)?Math.round((num(s.S)-num(CFG.global.scout))/num(s.c)):0;
+    const set=(sel,txt)=>{ const el=box.querySelector(sel); if(el) el.textContent=txt; };
+    set('.calc-'+i+'-truck', truck); set('.calc-'+i+'-sup', sup); set('.calc-'+i+'-P', P);
+    set('.v-'+i, v);
+  });
+  CFG.orders.forEach((o,i)=>{
+    const T = num(CFG.global.orderV)? num(o.cells)/num(CFG.global.orderV):0;
+    const st = CFG.stages[o.stage]||CFG.stages[0];
+    const el = box.querySelector('.t-'+i); if(el) el.textContent = T.toFixed(1);
+    const ul = box.querySelector('.u-'+i);
+    if(ul){
+      const P0 = 2*(num(st.K)+num(st.fight)+num(st.spec));
+      /* 单价需要完整 compute，交给结果区；这里只给粗提示 */
+      ul.textContent = '见右侧';
+    }
+  });
+}
+function setPath(o,p,v){ const k=p.split('.'); const last=k.pop(); k.reduce((a,x)=>a[x],o)[last]=v; }
+
+/* ============================================================
+   6. 渲染结果
+   ============================================================ */
+function renderResults(){
+  const R  = compute(CFG);
+  const RB = compute(BASE);
+  const g  = CFG.global;
+  const host = document.getElementById('results');
+  host.innerHTML = '';
+
+  /* 变换检测 */
+  const flat = r=>{
+    const a=[];
+    r.stages.forEach(s=>{
+      a.push(['编制·'+s.name,s.sup],['总人数·'+s.name,s.P],['货车·'+s.name,s.truck],['v·'+s.name,s.v],
+        ['总货舱·'+s.name,s.cargo],['补给钱·'+s.name,s.goldSup],['补给格·'+s.name,s.cellSup],
+        ['工资·'+s.name,s.wage],['车损·'+s.name,s.loss],['药包·'+s.name,s.med],
+        ['硬账H·'+s.name,s.H],['单程可达·'+s.name,s.reach]);
+    });
+    r.orders.forEach(o=>{
+      a.push(['天数·'+o.name,o.T],['单价·'+o.name,o.unit],['报酬·'+o.name,o.pay],
+        ['叠加·'+o.name,o.stackPay],['消耗·'+o.name,o.cost],['净利·'+o.name,o.profit],['日净·'+o.name,o.profitDay]);
+    });
+    r.prices.forEach(p=>{
+      a.push(['装备价·'+p.name,p.equip],['火种价·'+p.name,p.ember],['车价·'+p.name,p.truck],['招募价·'+p.name,p.hire]);
+    });
+    return a;
+  };
+  const A = flat(R), B = flat(RB);
+  const diffs = [];
+  for(let i=0;i<A.length;i++) if(Math.abs(num(A[i][1])-num(B[i][1]))>0.005) diffs.push([A[i][0],B[i][1],A[i][1]]);
+
+  const D = EL('div',{class:'resgroup'});
+  D.appendChild(EL('h2',{},'改动影响清单'+(diffs.length?`<span class="tag">${diffs.length} 项变了</span>`:'')));
+  if(!diffs.length){
+    D.appendChild(EL('div',{class:'empty'},'当前参数 = 默认基准，没有任何结果变化。改左边任意一格试试。'));
+  }else{
+    let d = `<table class="difftbl"><thead><tr><th>结果项</th><th>基准</th><th>现在</th><th>变化</th></tr></thead><tbody>`;
+    diffs.forEach(([k,b,c])=>{
+      const delta=num(c)-num(b), pct = num(b)!==0 ? delta/num(b)*100 : 0;
+      d += `<tr><td>${k}</td><td class="num muted">${fmt(b)}</td><td class="num calc">${fmt(c)}</td>
+        <td class="num ${delta>0?'ok':'bad'}">${delta>0?'+':''}${fmt(delta)}${num(b)!==0?` (${pct>0?'+':''}${pct.toFixed(1)}%)`:''}</td></tr>`;
+    });
+    D.insertAdjacentHTML('beforeend', d+'</tbody></table>');
+  }
+  host.appendChild(D);
+
+  const cell=(v,b,cls='num')=>{ const ch=Math.abs(num(v)-num(b))>0.005;
+    return `<td class="${cls}${ch?' chg':''}"${ch?` title="基准：${fmt(b)}"`:''}>${fmt(v)}</td>`; };
+  const cellE=(v,b,cls='num')=>{ const ch=Math.abs(num(v)-num(b))>0.005;
+    return `<td class="${cls}${ch?' chg':''}"${ch?` title="基准：${exact(b)}"`:''}>${exact(v)}</td>`; };
+
+  /* 一、编制与车队 */
+  let S = EL('div',{class:'resgroup'});
+  S.appendChild(EL('h2',{},'一、编制 · 车队 · 速度 <span class="tag">§2 §3</span>'));
+  S.appendChild(EL('p',{class:'sub'},'车数 = 车夫数 · 货车 = 车数 − 载人车 · 后勤 = 车夫+战斗+特殊 · 总人数 = 2×编制 · v = round((S−侦察)÷c)'));
+  let t = `<table><thead><tr><th>阶段</th><th>车数</th><th>货车</th><th>载人车</th>
+    <th>车夫</th><th>战斗</th><th>特殊</th><th>后勤</th><th>总人数</th>
+    <th>每车格</th><th>总货舱</th><th>v</th></tr></thead><tbody>`;
+  R.stages.forEach((s,i)=>{
+    const b=RB.stages[i]||s;
+    t += `<tr><td><b>${s.name}</b></td>${cell(s.K,b.K)}${cell(s.truck,b.truck)}${cell(s.emp,b.emp)}
+      ${cell(s.K,b.K)}${cell(s.fight,b.fight)}${cell(s.spec,b.spec)}${cell(s.sup,b.sup)}${cell(s.P,b.P)}
+      ${cell(s.q,b.q)}${cell(s.cargo,b.cargo,'num calc')}${cell(s.v,b.v,'num calc')}</tr>`;
+  });
+  t += `</tbody></table>`;
+  t += `<p class="note">每 +1 辆车 = +1 车夫 +1 后勤 = <b>+2 张嘴</b>，但 +${fmt(num(CFG.stages[0].q))} 格货舱 —— 这就是"加车永远划算、必须靠车上限闸住"的来源（04 §0.7.4）。</p>`;
+  S.insertAdjacentHTML('beforeend', t);
+  host.appendChild(S);
+
+  /* 二、每天消耗（硬账） */
+  S = EL('div',{class:'resgroup'});
+  S.appendChild(EL('h2',{},'二、每天消耗（硬账 H） <span class="tag">§4 §5</span>'));
+  S.appendChild(EL('p',{class:'sub'},'H = 补给钱 + 工资 + 车损 + 药包。硬账 = 跑路必花的钱，是订单报价的分母。'));
+  t = `<table><thead><tr><th>阶段</th><th>补给钱/天</th><th>补给格/天</th><th>补给占舱</th>
+    <th>工资/天</th><th>车损/天</th><th>药包/天</th><th>硬账 H</th><th>单程可达</th><th>一趟(60天)</th></tr></thead><tbody>`;
+  R.stages.forEach((s,i)=>{
+    const b=RB.stages[i]||s;
+    const pct = s.cargo? s.cellSup*60/s.cargo*100 : 0;
+    t += `<tr><td><b>${s.name}</b></td>${cell(s.goldSup,b.goldSup)}${cellE(s.cellSup,b.cellSup)}
+      <td class="num muted">${pct.toFixed(1)}%</td>
+      ${cell(s.wage,b.wage)}${cell(s.loss,b.loss)}${cell(s.med,b.med)}
+      ${cell(s.H,b.H,'num calc')}
+      <td class="num${Math.abs(s.reach-b.reach)>0.005?' chg':''}">${Math.round(s.reach)} 天</td>
+      ${cell(s.H*60,b.H*60)}</tr>`;
+  });
+  t += `</tbody></table>`;
+  t += `<p class="note">凡与 04 §0.3 对不上，多来自<b>药包</b>一项：文件现值是 10 / 21 / 31 金/天（估数），本公式是
+    <code>战斗人数 × 药包系数</code>；把系数改成 3.33 / 5.25 / 6.2 才能逐档对上。差异由你裁。</p>`;
+  S.insertAdjacentHTML('beforeend', t);
+  host.appendChild(S);
+
+  /* 三、四档订单 */
+  S = EL('div',{class:'resgroup'});
+  S.appendChild(EL('h2',{},'三、四档订单 <span class="tag">§6 · 04 §8.1</span>'));
+  S.appendChild(EL('p',{class:'sub'},'天数 = 格数 ÷ 折算速度（文件口径 2 格/天）· 单价 = 定价基准硬账 × k_档 · 报酬 = 天数 × 单价 · 期限 = 天数 × k_期 · 净利 = 报酬 − 消耗'));
+  t = `<table><thead><tr><th>档</th><th>基准</th><th>格数</th><th>天数</th><th>期限</th>
+    <th>单价(金/天)</th><th>金/格</th><th>报酬</th><th>叠加报酬</th><th>消耗</th><th>净利</th><th>日净</th></tr></thead><tbody>`;
+  R.orders.forEach((o,i)=>{
+    const b=RB.orders[i]||o;
+    t += `<tr><td><b>${o.name}</b></td><td class="muted">${o.stageName}</td>${cell(o.cells,b.cells)}${cellE(o.T,b.T)}${cellE(o.due,b.due)}
+      ${cell(o.unit,b.unit,'num calc')}${cell(o.per,b.per)}${cell(o.pay,b.pay)}${cell(o.stackPay,b.stackPay)}
+      ${cell(o.cost,b.cost)}${cell(o.profit,b.profit,o.profit>=0?'num ok':'num bad')}${cell(o.profitDay,b.profitDay,'num calc')}</tr>`;
+  });
+  t += `</tbody></table>`;
+  t += `<p class="note"><b>叠加</b>（§6.3）= 跑一条长线，沿途各档各接一笔、路程只走一遍 → 右边那列才是玩家真实的钱。
+    日净恒等于 <code>基准硬账 ×(倍率−1)</code>。</p>`;
+  S.insertAdjacentHTML('beforeend', t);
+  host.appendChild(S);
+
+  /* 四、支出端 */
+  S = EL('div',{class:'resgroup'});
+  S.appendChild(EL('h2',{},'四、支出端定价 <span class="tag">§7</span>'));
+  S.appendChild(EL('p',{class:'sub'},`物价 = 该档日净 × 天数系数（装备 ${CFG.price.equip} / 火种 ${CFG.price.ember} / 车 ${CFG.price.truck} / 招募 ${CFG.price.hire}）`));
+  t = `<table><thead><tr><th>档</th><th>日净</th><th>装备</th><th>火种</th><th>加挂货车</th><th>招募(人)</th></tr></thead><tbody>`;
+  R.prices.forEach((p,i)=>{
+    const b=RB.prices[i]||p;
+    t += `<tr><td><b>${p.name}</b></td>${cell(p.day,b.day)}${cell(p.equip,b.equip,'num calc')}
+      ${cell(p.ember,b.ember)}${cell(p.truck,b.truck)}${cell(p.hire,b.hire)}</tr>`;
+  });
+  t += `</tbody></table>`;
+  S.insertAdjacentHTML('beforeend', t);
+  host.appendChild(S);
+
+  /* 五、恢复 */
+  S = EL('div',{class:'resgroup'});
+  S.appendChild(EL('h2',{},`五、恢复（60 天要补多少血） <span class="tag">§0.6.3</span>`));
+  S.appendChild(EL('p',{class:'sub'},`承伤 = 血池 × 承伤比例 × √(3÷N)^α。${g.b60} 场（含 ${g.b60e} 场精英）· 据点治疗 ${g.healGold} 金/血 · 药包 ${g.medPer} 金/战斗人/天`));
+  t = `<table><thead><tr><th>阶段</th><th>血池</th><th>战斗人</th><th>人数系数</th><th>一场掉血/人</th>
+    <th>60天全队掉血</th><th>折算药包</th><th>据点治疗金</th><th>自愈补1场(初始)</th><th>自愈补1场(满级)</th></tr></thead><tbody>`;
+  R.rec.forEach((r,i)=>{
+    const b=RB.rec[i]||r;
+    t += `<tr><td><b>${r.name}</b></td>${cell(r.hp,b.hp)}${cell(r.N,b.N)}
+      <td class="num">${r.coef.toFixed(2)}</td><td class="num">${r.perHit.toFixed(1)}</td>
+      ${cell(r.teamLoss,b.teamLoss,'num calc')}${cellE(r.kitLine,b.kitLine)}${cell(r.healGold60,b.healGold60)}
+      ${cellE(r.selfDays,b.selfDays)}${cellE(r.selfDaysMax,b.selfDaysMax)}</tr>`;
+  });
+  t += `</tbody></table>`;
+  t += `<p class="note">三条腿：<b>药包</b>应急（只覆盖一部分）· <b>据点</b>主力（瞬时、花钱、低于药包）· <b>野外自愈</b>保底（极慢、免费）。
+    自愈那两列 = 补回"一场普通战的损耗"要几天 —— 必须慢到药包仍然必要。</p>`;
+  S.insertAdjacentHTML('beforeend', t);
+  host.appendChild(S);
+
+  /* 六、反推结果 */
+  const sv = CFG.solver, si = num(sv.stage), D2 = solve(CFG, si, sv.mode, sv.target);
+  S = EL('div',{class:'resgroup'});
+  S.appendChild(EL('h2',{},'六、反推结果 <span class="tag">改消耗 → 倒推编制</span>'));
+  const modeName = {cost:'日硬账',people:'总人数',cargo:'总货舱',reach:'单程可达'}[sv.mode]||sv.mode;
+  let o = `<div class="solver"><div class="out">`;
+  o += `目标：<b>${CFG.stages[si]?CFG.stages[si].name:''}</b> 阶段 · ${modeName} = <b>${fmt(sv.target)}</b><br>`;
+  o += `→ 需要 <span class="big">${D2.K} 辆车</span>（货车 ${D2.truck} + 载人车 ${D2.emp}）<br>`;
+  o += `→ 车夫 ${D2.K} · 后勤 ${D2.sup} · <b>总人数 ${D2.P}</b>（战斗 ${fmt(CFG.stages[si].fight)} · 特殊 ${fmt(CFG.stages[si].spec)} 保持不变）<br>`;
+  o += `→ 实际日硬账 <b>${fmt(D2.H)}</b> 金/天　·　总货舱 ${fmt(D2.cargo)} 格　·　单程可达 ${Math.round(D2.reach)} 天<br>`;
+  o += `<span class="muted">构成：补给 ${fmt(D2.goldSup)} + 工资 ${fmt(D2.wage)} + 车损 ${fmt(D2.loss)} + 药包 ${fmt(D2.med)} = ${fmt(D2.H)}；
+    每天吃 ${exact(D2.cellFood+D2.cellWater)} 格（${exact(D2.cellFood)} 食 + ${exact(D2.cellWater)} 水）</span>`;
+  if(D2.note) o += `<br><span class="warn">⚠️ ${D2.note}</span>`;
+  if(sv.mode==='cost'){
+    o += `<br><span class="muted">每多一辆车，日硬账 +${exact(D2.dH)} 金（1 车夫 + 1 后勤的吃喝工资，再加 1 辆车的车损）—— 这就是"规模自己会变贵"的斜率。</span>`;
+  }
+  o += `</div></div>`;
+  S.insertAdjacentHTML('beforeend', o);
+  host.appendChild(S);
+
+  /* 七、自检 */
+  S = EL('div',{class:'resgroup'});
+  S.appendChild(EL('h2',{},'七、自检 <span class="tag">§10</span>'));
+  let c = '<div class="chk">';
+  const bad1 = R.stages.filter(s=> s.sup !== num(s.K)+num(s.fight)+num(s.spec) || s.P !== 2*s.sup);
+  c += `① <b>编制闭合</b>：后勤 = 三者之和、总人数 = 2×编制 → `
+     + (bad1.length? `<span class="bad">不闭合（${bad1.map(x=>x.name).join('、')}）</span>`:`<span class="ok">全部闭合 ✓</span>`)+'<br>';
+  const bad2 = R.orders.filter(o=> o.Hd && Math.abs(o.unit/o.Hd - num(o.k))>0.005);
+  c += `② <b>倍率可复现</b>：单价 ÷ 基准硬账 = 倍率 → `
+     + (bad2.length? `<span class="bad">不符（${bad2.map(x=>x.name).join('、')}）</span>`:`<span class="ok">四档全对 ✓</span>`)+'<br>';
+  const bad3 = R.orders.filter(o=> Math.abs(o.profitDay-o.expectDay)>1);
+  c += `③ <b>日净恒等式</b>：日净 = 基准硬账 ×(倍率−1) → `
+     + (bad3.length? `<span class="bad">破（${bad3.map(x=>x.name).join('、')}）</span>`:`<span class="ok">四档全对 ✓</span>`)+'<br>';
+  const bad4 = R.stages.filter(s=> s.v<=0);
+  c += `④ <b>速度为正</b> → ` + (bad4.length? `<span class="bad">走不动（${bad4.map(x=>x.name).join('、')}）</span>`:`<span class="ok">正常 ✓</span>`)+'<br>';
+  const bad5 = R.stages.filter(s=> s.H <= 0);
+  c += `⑤ <b>硬账可算</b>：四件都能独立算出、不许有凑数项 → ` + (bad5.length? `<span class="bad">有 0 值</span>`:`<span class="ok">四件齐 ✓</span>`)+'<br>';
+  c += `⑥ <b>可达够不够</b>：` + R.orders.map(o=>{
+      const st = R.stages[o.stage]||{reach:0};
+      const ok = st.reach >= o.T;
+      return `<span class="${ok?'ok':'bad'}">${o.name} 需 ${Math.round(o.T)} 天 / 该档可达 ${Math.round(st.reach)} 天</span>`;
+    }).join(' · ')+'<br>';
+  c += `⑦ <b>成本结构</b>：` + R.stages.map(s=>{
+      const pct = s.H? s.goldSup/s.H*100:0;
+      return `<span class="${pct>85?'warn':'muted'}">${s.name} 补给占 ${pct.toFixed(0)}%</span>`;
+    }).join(' · ')+`（超 85% 说明光吃就吃光了钱）<br>`;
+  /* 与文件对账 */
+  c += `⑧ <b>与文件对账</b>：` + R.stages.map(s=>{
+      const file = {前期:300,中期:934,后期:1493}[s.name];
+      if(!file) return '';
+      const d = s.H-file;
+      return `<span class="${Math.abs(d)<1?'ok':(Math.abs(d)<30?'warn':'bad')}">${s.name} 算得 ${fmt(s.H)} / 文件 ${file}（${d>0?'+':''}${fmt(d)}）</span>`;
+    }).join(' · ')+'<br>';
+  const fileReach = {前期:70,中期:150,后期:250};
+  c += `⑨ <b>可达对账</b>：` + R.stages.map(s=>
+      `<span class="${Math.abs(s.reach-(fileReach[s.name]||0))<12?'ok':'warn'}">${s.name} 算得 ${Math.round(s.reach)} 天 / 04 §0.7.8 写 ${fileReach[s.name]} 天</span>`
+    ).join(' · ')+`<br>`;
+  c += '</div>';
+  S.insertAdjacentHTML('beforeend', c);
+  host.appendChild(S);
+
+  /* 八、算式回放 */
+  S = EL('div',{class:'resgroup'});
+  S.appendChild(EL('h2',{},'八、算式回放 <span class="tag">改一个数，看它怎么传下去</span>'));
+  let c2 = '<div class="chk">';
+  R.stages.forEach(s=>{
+    c2 += `<b>${s.name}</b>：车 ${exact(s.K)} → 货车 ${s.truck} → 后勤 ${exact(s.K)}+${exact(s.fight)}+${exact(s.spec)} = ${s.sup} → 总 <b>${s.P}</b> 人 ｜ `
+       + `v = round((${exact(s.S)} − ${exact(g.scout)}) ÷ ${exact(s.c)}) = <b>${s.v}</b> 格/天 ｜ `
+       + `货舱 ${s.truck}×${exact(s.q)} = <b>${fmt(s.cargo)}</b> 格<br>`
+       + `　　H = 补给 ${fmt(s.goldSup)}（${s.P}人 × ${exact(s.supUnit)}金）+ 工资 ${fmt(s.wage)} + 车损 ${fmt(s.loss)}（${s.truck}车×${exact(num(g.durDay)+num(g.durBattle))}×${exact(g.durGold)}）+ 药包 ${fmt(s.med)} = <span class="calc">${exact(s.H)}</span><br>`
+       + `　　可达 = ${exact(g.W0/2)} × (${exact(s.q)}÷${exact(g.q0)}) × ${exact(s.K)}÷(${exact(s.K)}+${exact(s.fight)}+${exact(s.spec)}) = <b>${Math.round(s.reach)}</b> 天<br>`;
+  });
+  c2 += '<br>';
+  R.orders.forEach(o=>{
+    c2 += `<b>${o.name}</b>：基准 ${o.stageName} H=${exact(o.Hd)} × 倍率 ${exact(o.k)} = 单价 <b>${fmt(o.unit)}</b> 金/天 ｜ `
+       + `天数 ${exact(o.cells)}÷${exact(g.orderV)} = ${exact(o.T)} ｜ 期限 ${exact(o.due)} 天 ｜ `
+       + `报酬 ${fmt(o.pay)} − 消耗 ${fmt(o.cost)} = <span class="calc">净 ${fmt(o.profit)}</span>（日净 ${fmt(o.profitDay)}）<br>`;
+  });
+  c2 += '</div>';
+  S.insertAdjacentHTML('beforeend', c2);
+  host.appendChild(S);
+
+  /* 反推器小面板在输入区，刷新它 */
+  const so = document.getElementById('solverOut');
+  if(so){
+    so.innerHTML = `→ <span class="big">${D2.K} 辆车</span>（货车 ${D2.truck} + 载人车 ${D2.emp}）· 后勤 ${D2.sup} · 总人数 <b>${D2.P}</b><br>
+      实际日硬账 <b>${fmt(D2.H)}</b> · 货舱 ${fmt(D2.cargo)} 格 · 单程可达 ${Math.round(D2.reach)} 天
+      ${D2.note?`<br><span class="warn">⚠️ ${D2.note}</span>`:''}`;
+  }
+}
+
+/* ============================================================
+   7. 预设 · 存储 · 按钮
+   ============================================================ */
+function applyPreset(key){
+  if(key==='doc'){
+    CFG.stages[0] = {...CFG.stages[0], K:4,  emp:1, fight:3, spec:0, q:300, S:50, c:20, fDens:5, fPrice:10, refill:0, hp:100};
+    CFG.stages[1] = {...CFG.stages[1], K:7,  emp:2, fight:4, spec:4, q:600, S:50, c:20, fDens:5, fPrice:10, refill:0, hp:200};
+    CFG.stages[2] = {...CFG.stages[2], K:12, emp:4, fight:5, spec:5, q:900, S:50, c:20, fDens:5, fPrice:10, refill:0, hp:300};
+  }else if(key==='flat300'){
+    CFG.stages[0] = {...CFG.stages[0], K:4,  emp:1, fight:3, spec:0, q:300, S:30, c:10, fDens:5,  fPrice:10,  refill:20, hp:100};
+    CFG.stages[1] = {...CFG.stages[1], K:6,  emp:0, fight:5, spec:4, q:300, S:38, c:7,  fDens:10, fPrice:30,  refill:40, hp:200};
+    CFG.stages[2] = {...CFG.stages[2], K:18, emp:0, fight:7, spec:5, q:300, S:40, c:5,  fDens:15, fPrice:100, refill:60, hp:300};
+  }else if(key==='none'){
+    CFG.stages.forEach((s,i)=>{ CFG.stages[i] = {...s, K:0, emp:0, fight:0, spec:0}; });
+  }
+}
+
+/* 补给三档：密度与粮价一起换（玩家每次出发自选，23 §4.3） */
+function applySupplyTier(tier){
+  const T = { low:{d:5,p:10}, mid:{d:10,p:30}, high:{d:20,p:100} }[tier];
+  if(!T) return;
+  CFG.stages.forEach((s,i)=>{ CFG.stages[i] = {...s, fDens:T.d, fPrice:T.p}; });
+}
+
+function saveLocal(){ try{ localStorage.setItem(LSKEY, JSON.stringify(CFG)); }catch(e){} }
+function loadLocal(){
+  try{ const s=localStorage.getItem(LSKEY); if(!s) return null;
+    const d=JSON.parse(s);
+    if(!d || !d.global || !d.stages || !d.orders || d.stages.length!==3) return null;
+    return d;
+  }catch(e){ return null; }
+}
+function markDirty(){
+  const same = JSON.stringify(CFG)===JSON.stringify(BASE);
+  const tip = document.getElementById('dirtyTip');
+  tip.textContent = same ? '当前 = 基准' : '● 已改动';
+  tip.className = same ? 'muted' : 'warn';
+}
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  CFG = makeBase(); saveLocal(); renderInputs(); renderResults(); markDirty();
+});
+document.getElementById('btnSetBase').addEventListener('click', ()=>{
+  BASE = JSON.parse(JSON.stringify(CFG)); renderResults(); markDirty();
+  document.getElementById('dirtyTip').textContent = '基准已更新为当前参数';
+});
+document.getElementById('selPreset').addEventListener('change', e=>{
+  if(!e.target.value) return;
+  applyPreset(e.target.value); e.target.value='';
+  saveLocal(); renderInputs(); renderResults(); markDirty();
+});
+document.getElementById('btnExport').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(CFG,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '余烬商队_数值参数_'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.json';
+  a.click();
+});
+document.getElementById('fileImport').addEventListener('change', e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{ const d=JSON.parse(r.result);
+      CFG = Object.assign(makeBase(), d);
+      saveLocal(); renderInputs(); renderResults(); markDirty();
+    }catch(err){ alert('JSON 读取失败：'+err.message); }
+  };
+  r.readAsText(f);
+});
+
+(function init(){
+  const saved = loadLocal();
+  if(saved) CFG = saved;
+  renderInputs(); renderResults(); markDirty();
+  if(saved) document.getElementById('dirtyTip').textContent='● 已载入上次改动';
+})();
+</script>
+</body>
+</html>
