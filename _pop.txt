@@ -1,0 +1,3 @@
+HEAD = fdb43b9 docs(2A/6A): remove team-capped 500g severe-injury rule; fill population and settlement-origin fields
+2A 残留500上限=1 待定数=21
+6A 残留500上限=1
