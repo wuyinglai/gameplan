@@ -1,0 +1,4 @@
+HEAD = a4bec06 docs(2A): replace duplicated morale section with pointer to 3A
+2A len=11164 章节=12
+士气消费表残留=1（应为 0）
+3A len=49466 士气节保留=1
