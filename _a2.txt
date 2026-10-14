@@ -1,3 +1,0 @@
-HEAD = cfbea12 docs(4A/5A/6A): move revision logs into appendix files
---- 全库残留附录A检查 ---
-  (无 LEFT = 全部外置完成)

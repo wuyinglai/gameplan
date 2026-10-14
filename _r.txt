@@ -1,4 +1,0 @@
-3A len=33815
-残留检查: 3车60=1 20000金=1 1格2小时=0 双倍=1
-新增: 恢复机制=1 脏污染=2 野外扎营新=1 每车上限=2
-HEAD = 8e04814 docs(3A): resource table fixes - water parity, dirty water effects, per-vehicle durability, no gold reference, supply recovery mechanic, wait vs camp
