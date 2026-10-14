@@ -1,8 +1,0 @@
-临时文件 = 0 个
-git status = 2
-
-3A len=33490 RO=Y
-3A 四部位: 车轮=1 车身=1 车架=1 车篷=1
-3A 关键项: §1.6.1恢复机制=1 污染度=3 20,000=0 指针=5
-
-HEAD = 7e0ab62 chore: lock editor temp file 15f35c2 chore: cleanup 17f6bb5 docs(1A/5A/6A): sync vehicle part terminology to new four-part system
