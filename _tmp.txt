@@ -1,0 +1,10 @@
+=== 全库 .tmp / 临时文件 ===
+  ~$第 1 类：大型连续格子地图、商路、野外、情报与随机事件.xlsx  [rw]  165 chars  写入=15:58:15
+  .git\.COMMIT_EDITMSG.swp  [rw]  12288 chars  写入=21:13:51
+  0A_权威系统文档\第3A类_商队资源与失败系统_权威口径.md.tmp  [rw]  65224 chars  写入=18:56:35
+共 3 个
+
+=== 尝试删除 ===
+  删不掉（可能正被占用）: ~$第 1 类：大型连续格子地图、商路、野外、情报与随机事件.xlsx :: [safe-delete][SAFE_DELETE_FAIL_CLOSED] {"target":"C:\\Users\
+  删不掉（可能正被占用）: .COMMIT_EDITMSG.swp :: [safe-delete][SAFE_DELETE_FAIL_CLOSED] {"target":"C:\\Users\
+  删不掉（可能正被占用）: 第3A类_商队资源与失败系统_权威口径.md.tmp :: [safe-delete][SAFE_DELETE_FAIL_CLOSED] {"target":"C:\\Users\
