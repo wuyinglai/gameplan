@@ -1,5 +1,0 @@
-6A 残留: 五选二=1 车体结构槽=4 减震=1 牵引=0
-3A 四部位: 车轮=1 车身=1 车架=1 车篷=1
-3A 旧五部位残留: 车轴=1 制动=1
-HEAD = 86e68a7 docs(3A/6A): rework vehicle part system - four parts, four damage channels, per-part upgrade without slots
-status = 0
