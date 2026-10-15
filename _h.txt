@@ -1,0 +1,4 @@
+精确射击每层+3=1
+无限植入=1 旧上限8/15=0
+车体栏位×4=3 旧时代装备槽=0
+HEAD = 5a3de75 docs(6A): precise-shot mark scaling spelled out, unlimited class memory implants, vehicle parts become four slots, drop legacy equipment slot
