@@ -1,8 +1,0 @@
-扎营双倍残留=2（应0）
-等待城市列表=0（应0）
-已删除节=0（应0）
-关联边界表=0（应0）
-2小时残留=5 + 2小时=5
-暴雪（天气表里没有）=0
-重排占位=9
-HEAD = d7a81f9 docs(5A): sync camping/waiting rules, remove deleted-events section and duplicate boundary table
