@@ -1,2 +1,0 @@
-insert before line 43
-8A len=15614 三层区分=1 灰白物质=4
