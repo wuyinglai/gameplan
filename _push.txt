@@ -1,0 +1,9 @@
+本地 HEAD  = b7cb58e92f40451d93394b0c45900ba35b2bd64f
+远程 main  = 8e43b074852639232c0570f8008c24622df57dd3	refs/heads/main
+工作区改动 = 1 项
+未推送 commit = 3 条
+
+=== 待推送 commit（末尾 12 条）===
+  fatal: ambiguous argument 'origin/main..HEAD': unknown revision or path not in the working tree.
+  Use '--' to separate paths from revisions, like this:
+  'git <command> [<revision>...] -- [<file>...]'
