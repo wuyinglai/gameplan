@@ -1,6 +1,0 @@
-FIX 第1B类_旅行基础.md
-FIX 第2B类_商队生存与地点.md
-FIX 第3B类_事件系统.md
-FIX 第4B类_探索与信息发现.md
-FIX 第5B类_战斗与战斗后果.md
-FIX 第6B类_跑商闭环.md
