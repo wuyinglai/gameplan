@@ -28,9 +28,13 @@ def inb(x, y):
     return 0 <= x < W and 0 <= y < H
 
 
-def put(x, y, t):
+def put(x, y, t, r=None):
     grid[y][x] = t
-    L.append({'t': t, 'x': x, 'y': y})
+    cell = {'t': t, 'x': x, 'y': y}
+    # 🔴 路况档：r = 0好 1普通 2差 3恶劣；不给就是"普通"（Hermes Gap 1）
+    if r is not None:
+        cell['r'] = r
+    L.append(cell)
 
 
 # ---------------- 地形 ----------------
@@ -136,23 +140,46 @@ def main():
         pth = path_of(p, b)
         for i, (x, y) in enumerate(pth):
             if i and grid[y][x] is None:
-                put(x, y, 'road')
+                # 🔴 商路本身路况 = 好（r=0）；路况档只标在"非商路"的野地上
+                put(x, y, 'road', 0)
         for i in range(70, len(pth) - 30, 70):
             x, y = pth[len(pth) - 1 - i]
             if grid[y][x] in ('road', None):
                 put(x, y, 'inn1')
         print('  %-3s %4d 格  (15/格 = %d 点· %.0f 天)' % (key, dist, dist * 15, dist / 3.0))
 
+    # 🔴 沿 A→B 铺一条「路况差」的对照线：路肩两格 = 差(r=2)
+    random.seed(SEED + 11)
+    _, p2 = bfs(CITY_A)
+    p2 = path_of(p2, CITY_B)
+    n = 0
+    for i, (x, y) in enumerate(p2):
+        if 10 < i < len(p2) - 10:
+            for dx, dy in ((1, 0), (0, 1)):
+                nx, ny = x + dx, y + dy
+                if inb(nx, ny) and grid[ny][nx] is None:
+                    # 记成野地（空地）+ 差路况
+                    grid[ny][nx] = '空地'
+                    L.append({'t': '空地', 'x': nx, 'y': ny, 'r': 2})
+                    n += 1
+        if n > 240:
+            break
+    print('  （沿 A→B 另铺 %d 格「差」路况的野地，用作路况对照）' % n)
+
     # 输出
-    order = ['big', 'small', 'inn1', 'road', 'blk_fr', 'block', 'blk_wt']
+    order = ['big', 'small', 'inn1', 'road', '空地', 'blk_fr', 'block', 'blk_wt']
     L.sort(key=lambda c: (order.index(c['t']) if c['t'] in order else 99, c['x'], c['y']))
 
     obj = {
         'map': {'width': W, 'height': H},
+        # 🔴 起终点标记（Hermes Gap 3）—— 代码必须知道从哪走到哪
+        'start': [CITY_A[0], CITY_A[1]],
+        'end': [CITY_B[0], CITY_B[1]],
         'note': ('🔴 占位测试地图（项目主正式地图未交付前的临时夹具）。'
-                 'big=大城 small=小城 inn1=驿站 road=商路 blk_fr=桥/林地(可通行) '
-                 'block=山(不可通行) blk_wt=水(不可通行)。'
-                 '🔴 不保证路线平衡，只保证能测时间/体力/跨日/不可通行。'
+                 't: big=大城 small=小城 inn1=驿站 road=商路 空地=野外 '
+                 'blk_fr=桥/林地(可通行) block=山(不可通行) blk_wt=水(不可通行)。'
+                 '🔴 r = 路况档：0好 1普通 2差 3恶劣，不给=普通。'
+                 '🔴 不保证路线平衡，只保证能测时间/体力/跨日/不可通行/路况加成。'
                  '换正式地图时直接替换本文件，代码不用改。'),
         'locations': L,
     }
