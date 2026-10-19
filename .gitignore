@@ -2,9 +2,14 @@
 ~$*
 
 # Local runtime data (not part of the game design docs)
-.hermes/
-.workbuddy/
+# 🔴 .workbuddy/ 不再忽略 —— 项目记忆必须进仓库（换机器/回滚都不能丢）
 
 # Python cache
 __pycache__/
 *.pyc
+
+# ---- 游戏本体 ----
+游戏本体/node_modules/
+游戏本体/dist/
+游戏本体/.vite/
+游戏本体/*.local

@@ -1,0 +1,7 @@
+len=47254
+CRLF=0
+LF_only=696
+idx_CRLF_hash=-1
+idx_LF_hash=732
+first_hash_pos=733
+around_first=10-12**（全库一致性体检 · 堵漏批）。<LF><LF>---<LF><LF>## 1. 游戏类型定位<LF><LF>- **游戏类型**：大地图商队
