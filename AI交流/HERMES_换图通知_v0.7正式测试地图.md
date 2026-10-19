@@ -9,7 +9,7 @@
 
 ```bash
 # 复制新地图（覆盖你 E:\WYY\src\b01\地图.json 里的旧占位夹具）
-copy "C:\Users\Administrator\Desktop\游戏大纲\其他\占位地图夹具\地图.json" ^
+copy "C:\Users\Administrator\Desktop\游戏大纲\其他\测试地图_v0.7\地图.json" ^
      "E:\WYY\src\b01\地图.json"
 ```
 
@@ -90,7 +90,7 @@ copy "C:\Users\Administrator\Desktop\游戏大纲\其他\占位地图夹具\地�
 ## 七、完整规格书在哪
 
 ```
-游戏大纲\其他\占位地图夹具\
+游戏大纲\其他\测试地图_v0.7\
 ├─ 地图.json                    ← 🔴 复制这个
 ├─ 地图规格书_v0.7.md            ← 🔴 完整规格（距离/路况/通路/连通性）
 ├─ _conv_chatgpt_v07.py          ← 转换脚本（原始 CSV → JSON）
