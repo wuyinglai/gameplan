@@ -239,9 +239,23 @@ describe('⑥ 真实地图夹具能读出来（Gap 7 已裁定，不再 skip）'
     expect(可停留(查格(地图, 地图.终点.x, 地图.终点.y))).toBe(true);
   });
 
-  it('夹具里的每一格都能通过 通行校验；山/水 拦住玩家', () => {
-    let 山数 = 0, 水数 = 0, 商路数 = 0, 可停留数 = 0;
+  it('夹具的每一格都读进来了；山/水 真的拦住玩家（数量按 json 现算，换图不失效）', () => {
+    // 🔴 2026-10-19 改：原来这里写死 4254 / 2149 / 1155 / 734（旧占位图的快照）。
+    //    官方测试图已换成 ChatGPT v0.7（41131 条），写死的数字会让测试在换图当天
+    //    集体假红；反过来若有人只把数字改掉、地图其实没换对，也照样假绿。
+    //    所以改成**从 json 现算**：断言的是「加载器 == 源数据」，与是哪张图无关。
+    const 条目 = 地图json.locations as { t: string; x: number; y: number }[];
+    const 按 = (键: string[]) => 条目.filter((o) => 键.includes(o.t)).length;
+    const 山键 = ['block', 'blk_mt'], 水键 = ['blk_wt'];
+    const 商路键 = ['road'];
+    const 地点键 = ['big', 'small', 'town', 'village', 'inn1', 'inn0', 'camp', 'special'];
+
     const 全部 = [...地图.格子表.values()];
+    // 加载器不许吞条目，也不许凭空造格（同坐标重复会被合并 → 比对唯一坐标数）
+    expect(条目.length).toBe(new Set(条目.map((o) => `${o.x},${o.y}`)).size); // 夹具不许有重复格
+    expect(全部.length).toBe(条目.length);
+
+    let 山数 = 0, 水数 = 0, 商路数 = 0, 可停留数 = 0;
     for (const 格 of 全部) {
       if (!可通行(格)) {
         expect(['山', '水'], `意外不可通行的类型："${格.类型}"`).toContain(格.类型);
@@ -251,11 +265,14 @@ describe('⑥ 真实地图夹具能读出来（Gap 7 已裁定，不再 skip）'
       if (格.类型 === '商路') 商路数 += 1;
       if (可停留(格)) 可停留数 += 1;
     }
-    expect(全部.length).toBe(4254);           // 与 json 条目数一一对应（重复已合并）
-    expect(山数).toBe(2149);
-    expect(水数).toBe(1155);
-    expect(商路数).toBe(734);
-    expect(可停留数).toBe(1 + 2 + 9);          // 大城1 + 小城2 + 驿站9
+    expect(山数).toBe(按(山键));
+    expect(水数).toBe(按(水键));
+    expect(商路数).toBe(按(商路键));
+    expect(可停留数).toBe(按(地点键));
+    // 🔴 三块硬约束：图上确实有山有水有地点，否则上面四个断言会集体 0==0 空转
+    expect(山数).toBeGreaterThan(0);
+    expect(水数).toBeGreaterThan(0);
+    expect(可停留数).toBeGreaterThan(0);
   });
 
   it('起点旁边那一格是可走的商路，路况「好」（r=0 生效）', () => {
