@@ -1,15 +1,22 @@
 # Office temporary/lock files
 ~$*
 
-# Local runtime data (not part of the game design docs)
-# 🔴 .workbuddy/ 不再忽略 —— 项目记忆必须进仓库（换机器/回滚都不能丢）
+# Local runtime data
+.hermes/
+
+# NOTE: .workbuddy/ is intentionally NOT ignored — project memory must be versioned
 
 # Python cache
 __pycache__/
 *.pyc
 
-# ---- 游戏本体 ----
+# ---- 游戏本体（代码工程）----
 游戏本体/node_modules/
 游戏本体/dist/
 游戏本体/.vite/
+游戏本体/.tmp/
 游戏本体/*.local
+游戏本体/coverage/
+
+# ---- 兜底：任何位置的 node_modules ----
+node_modules/
