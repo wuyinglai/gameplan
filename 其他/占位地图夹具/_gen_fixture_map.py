@@ -144,7 +144,12 @@ def main():
                 put(x, y, 'road', 0)
         for i in range(70, len(pth) - 30, 70):
             x, y = pth[len(pth) - 1 - i]
-            if grid[y][x] in ('road', None):
+            # 🔴 关键：驿站不能压在商路上（Hermes Gap 7）
+            #    先卸掉商路标记，放驿站 —— 否则同一个坐标会出现两条记录
+            if grid[y][x] == 'road':
+                grid[y][x] = None
+                L[:] = [q for q in L if not (q['x'] == x and q['y'] == y and q['t'] == 'road')]
+            if grid[y][x] in (None,):
                 put(x, y, 'inn1')
         print('  %-3s %4d 格  (15/格 = %d 点· %.0f 天)' % (key, dist, dist * 15, dist / 3.0))
 
