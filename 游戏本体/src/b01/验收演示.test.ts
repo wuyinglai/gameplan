@@ -11,11 +11,11 @@
 // ============================================================================
 
 import { describe, it } from 'vitest';
-import { readFileSync } from 'node:fs';
 import { 加载地图, 可通行, 查格 } from './地图';
 import { 新建游戏状态 } from './状态';
 import { 走一格 } from './主循环';
 import { 结束当天 } from './结束当天';
+import 地图json from './地图.json';
 import type { 游戏状态 } from './状态';
 import type { 坐标, 地图对象 } from './地图';
 
@@ -48,8 +48,7 @@ describe('🔴 第一阶段验收演示', () => {
 });
 
 function loadMap(): 地图对象 {
-  const 原始 = readFileSync('./src/b01/地图.json', 'utf8');
-  return 加载地图(JSON.parse(原始));
+  return 加载地图(地图json);
 }
 
 function runTrip(开局钩: () => 游戏状态 | null, 标签: string): RunResult {
