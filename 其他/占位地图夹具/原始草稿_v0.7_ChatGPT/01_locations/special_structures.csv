@@ -1,0 +1,11 @@
+﻿id,name,type,x,y,cluster,role
+SPECIAL_STRUCTURE_1,特殊建筑1,special_structure,36,130,沿路/区域探索点,测试探索点；距最近可通行商路约27格；仅供测试地图
+SPECIAL_STRUCTURE_2,特殊建筑2,special_structure,74,266,沿路/区域探索点,测试探索点；距最近可通行商路约27格；仅供测试地图
+SPECIAL_STRUCTURE_3,特殊建筑3,special_structure,273,98,沿路/区域探索点,测试探索点；距最近可通行商路约27格；仅供测试地图
+SPECIAL_STRUCTURE_4,特殊建筑4,special_structure,280,322,沿路/区域探索点,测试探索点；距最近可通行商路约38格；仅供测试地图
+SPECIAL_STRUCTURE_5,特殊建筑5,special_structure,377,90,沿路/区域探索点,测试探索点；距最近可通行商路约27格；仅供测试地图
+SPECIAL_STRUCTURE_6,特殊建筑6,special_structure,365,310,沿路/区域探索点,测试探索点；距最近可通行商路约34格；仅供测试地图
+SPECIAL_STRUCTURE_7,特殊建筑7,special_structure,99,41,沿路/区域探索点,测试探索点；距最近可通行商路约27格；仅供测试地图
+SPECIAL_STRUCTURE_8,特殊建筑8,special_structure,174,300,沿路/区域探索点,测试探索点；距最近可通行商路约27格；仅供测试地图
+SPECIAL_STRUCTURE_9,特殊建筑9,special_structure,250,98,沿路/区域探索点,测试探索点；距最近可通行商路约27格；仅供测试地图
+SPECIAL_STRUCTURE_10,特殊建筑10,special_structure,250,330,沿路/区域探索点,测试探索点；距最近可通行商路约35格；仅供测试地图

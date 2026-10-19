@@ -1,0 +1,13 @@
+﻿id,name,start_id,end_id,variant,condition,moves,days_at_3_moves_per_day,shortest_walkable_moves,extra_moves_vs_shortest,other_city_ids_on_path,order_eligible,bridge_ids_crossed,route_effect_note
+ROUTE_1,路线1（山中险道1/短/险）,CITY_BIG_1,CITY_SMALL_1,mountain_shortcut,rough,600,200.0,570,30,,true,BRIDGE_1,山中险道/短路：较短但通过窄山口，风险高且沿线服务少
+ROUTE_2,路线2（主商路/略绕/维护良好）,CITY_BIG_1,CITY_SMALL_1,maintained_main_road,maintained,666,222.0,570,96,,true,BRIDGE_1,维护主商路：沿山麓/河谷轻微绕行，路况较好并配置中继驿站
+ROUTE_3,路线3（裂谷边缘近路/短/险）,CITY_BIG_1,CITY_SMALL_3,rough_shortcut,rough,414,138.0,404,10,,true,,险路/短路：距离较短但路面较差、沿线服务较少
+ROUTE_4,路线4（南侧主商路/略绕/维护良好）,CITY_BIG_1,CITY_SMALL_3,maintained_main_road,maintained,482,160.67,404,78,,true,,维护主商路：沿山麓/河谷轻微绕行，路况较好并配置中继驿站
+ROUTE_5,路线5（山口1近路/短/险）,CITY_BIG_1,CITY_SMALL_2,rough_shortcut,rough,254,84.67,220,34,,true,,险路/短路：距离较短但路面较差、沿线服务较少
+ROUTE_6,路线6（山麓主商路/略绕/维护良好）,CITY_BIG_1,CITY_SMALL_2,maintained_main_road,maintained,306,102.0,220,86,,true,,维护主商路：沿山麓/河谷轻微绕行，路况较好并配置中继驿站
+ROUTE_7,路线7（山中险道2/短/险）,CITY_SMALL_2,CITY_SMALL_1,mountain_shortcut,rough,410,136.67,410,0,,true,BRIDGE_1,山中险道/短路：较短但通过窄山口，风险高且沿线服务少
+ROUTE_8,路线8（北侧主商路/略绕/维护良好）,CITY_SMALL_2,CITY_SMALL_1,maintained_main_road,maintained,432,144.0,410,22,,true,BRIDGE_1,维护主商路：沿山麓/河谷轻微绕行，路况较好并配置中继驿站
+ROUTE_9,路线9（裂谷东缘小路/短/险）,CITY_SMALL_2,CITY_SMALL_3,rough_shortcut,rough,434,144.67,396,38,,true,,险路/短路：距离较短但路面较差、沿线服务较少
+ROUTE_10,路线10（南部主商路/略绕/维护良好）,CITY_SMALL_2,CITY_SMALL_3,maintained_main_road,maintained,498,166.0,396,102,,true,,维护主商路：沿山麓/河谷轻微绕行，路况较好并配置中继驿站
+ROUTE_11,路线11（跨角险道参考）,CITY_SMALL_1,CITY_SMALL_3,rough_shortcut,rough,780,260.0,760,20,,false,BRIDGE_2,险路/短路：距离较短但路面较差、沿线服务较少；跨角参考，不作标准订单
+ROUTE_12,路线12（跨角主商路参考）,CITY_SMALL_1,CITY_SMALL_3,maintained_main_road,maintained,974,324.67,760,214,,false,BRIDGE_1,维护主商路：沿山麓/河谷轻微绕行，路况较好并配置中继驿站；跨角参考，不作标准订单

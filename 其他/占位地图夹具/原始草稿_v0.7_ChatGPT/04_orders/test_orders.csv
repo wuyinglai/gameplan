@@ -1,0 +1,9 @@
+﻿id,name,type,start_id,end_id,route_id,route_options,short_route_moves,maintained_route_moves,base_days_short_route,base_days_maintained_route,other_city_ids_on_path,notes
+ORDER_SHORT_1,短途订单1,short,CITY_BIG_1,VILLAGE_2,,,10,,3.33,,,短途订单只规定起终点；终点是村庄/城镇/驿站/特殊建筑之一。距离按最短可通行路径估算。
+ORDER_SHORT_2,短途订单2,short,CITY_SMALL_1,TOWN_9,,,32,,10.67,,,短途订单只规定起终点；终点是村庄/城镇/驿站/特殊建筑之一。距离按最短可通行路径估算。
+ORDER_SHORT_3,短途订单3,short,CITY_BIG_1,SPECIAL_STRUCTURE_1,,,140,,46.67,,,短途订单只规定起终点；终点是村庄/城镇/驿站/特殊建筑之一。距离按最短可通行路径估算。
+ORDER_SHORT_4,短途订单4,short,CITY_BIG_1,STATION_1,,,56,,18.67,,,短途订单只规定起终点；终点是村庄/城镇/驿站/特殊建筑之一。距离按最短可通行路径估算。
+ORDER_MEDIUM_1,中途订单1,medium,CITY_BIG_1,CITY_SMALL_2,,ROUTE_5|ROUTE_6,254,306,84.67,102.0,,订单只规定起点与终点；玩家可在短/差与长/好路线中选择。两条路线均不经过第三座城市；天数为基准格数÷3，不含天气和停留。
+ORDER_LONG_1,长途订单1,long,CITY_SMALL_2,CITY_SMALL_3,,ROUTE_9|ROUTE_10,434,498,144.67,166.0,,订单只规定起点与终点；玩家可在短/差与长/好路线中选择。两条路线均不经过第三座城市；天数为基准格数÷3，不含天气和停留。
+ORDER_LONG_2,长途订单2,long,CITY_SMALL_2,CITY_SMALL_1,,ROUTE_7|ROUTE_8,410,432,136.67,144.0,,订单只规定起点与终点；玩家可在短/差与长/好路线中选择。两条路线均不经过第三座城市；天数为基准格数÷3，不含天气和停留。
+ORDER_LONG_3,长途订单3,long,CITY_BIG_1,CITY_SMALL_1,,ROUTE_1|ROUTE_2,600,666,200.0,222.0,,订单只规定起点与终点；玩家可在短/差与长/好路线中选择。两条路线均不经过第三座城市；天数为基准格数÷3，不含天气和停留。

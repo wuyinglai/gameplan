@@ -1,0 +1,5 @@
+﻿cluster_id,city_id,city_name,town_count,village_count,town_city_distance_min,town_city_distance_avg,town_city_distance_max,village_city_distance_min,village_city_distance_avg,village_city_distance_max,village_nearest_town_distance_avg,village_nearest_town_distance_max,note
+聚居圈1,CITY_BIG_1,大城1,6,13,14.9,22.2,27.5,3.2,14.4,26.9,9.3,14.3,坐标直线距离，只用于聚落分布检查；不能替代考虑地形障碍的实际行程距离
+聚居圈2,CITY_SMALL_1,小城1,4,9,19.9,23.1,27.5,7.3,21.2,41.6,10.7,22.8,坐标直线距离，只用于聚落分布检查；不能替代考虑地形障碍的实际行程距离
+聚居圈3,CITY_SMALL_2,小城2,5,10,14.9,22.1,25.5,4.5,17.5,32.2,9.2,18.0,坐标直线距离，只用于聚落分布检查；不能替代考虑地形障碍的实际行程距离
+聚居圈4,CITY_SMALL_3,小城3,3,9,13.9,19.2,24.0,7.2,16.4,25.6,8.8,17.7,坐标直线距离，只用于聚落分布检查；不能替代考虑地形障碍的实际行程距离

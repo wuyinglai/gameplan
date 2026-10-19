@@ -1,0 +1,5 @@
+﻿id,name,type,x,y,cluster,role
+CITY_BIG_1,大城1,big_city,10,200,聚居圈1,地图左侧中部；主要城市节点
+CITY_SMALL_1,小城1,small_city,390,10,聚居圈2,地图右上方城市端点
+CITY_SMALL_2,小城2,small_city,200,230,聚居圈3,地图中央城市；被山体围护、从西侧山口进入
+CITY_SMALL_3,小城3,small_city,10,390,聚居圈4,地图左下方城市端点

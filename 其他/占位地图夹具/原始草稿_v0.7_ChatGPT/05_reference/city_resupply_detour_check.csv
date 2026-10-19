@@ -1,0 +1,13 @@
+﻿origin_city_id,destination_city_id,alternative_city_id,direct_shortest_moves,via_other_city_shortest_moves,extra_moves,extra_days_at_3_moves_per_day,note
+CITY_BIG_1,CITY_SMALL_1,CITY_SMALL_2,570,630,60,20.0,最短步数基于不可通行地形和桥梁约束；不含天气与停留。
+CITY_BIG_1,CITY_SMALL_1,CITY_SMALL_3,570,1164,594,198.0,最短步数基于不可通行地形和桥梁约束；不含天气与停留。
+CITY_BIG_1,CITY_SMALL_2,CITY_SMALL_1,220,980,760,253.33,最短步数基于不可通行地形和桥梁约束；不含天气与停留。
+CITY_BIG_1,CITY_SMALL_2,CITY_SMALL_3,220,800,580,193.33,最短步数基于不可通行地形和桥梁约束；不含天气与停留。
+CITY_BIG_1,CITY_SMALL_3,CITY_SMALL_1,404,1330,926,308.67,最短步数基于不可通行地形和桥梁约束；不含天气与停留。
+CITY_BIG_1,CITY_SMALL_3,CITY_SMALL_2,404,616,212,70.67,最短步数基于不可通行地形和桥梁约束；不含天气与停留。
+CITY_SMALL_1,CITY_SMALL_2,CITY_BIG_1,410,790,380,126.67,最短步数基于不可通行地形和桥梁约束；不含天气与停留。
+CITY_SMALL_1,CITY_SMALL_2,CITY_SMALL_3,410,1156,746,248.67,最短步数基于不可通行地形和桥梁约束；不含天气与停留。
+CITY_SMALL_1,CITY_SMALL_3,CITY_BIG_1,760,974,214,71.33,最短步数基于不可通行地形和桥梁约束；不含天气与停留。
+CITY_SMALL_1,CITY_SMALL_3,CITY_SMALL_2,760,806,46,15.33,最短步数基于不可通行地形和桥梁约束；不含天气与停留。
+CITY_SMALL_2,CITY_SMALL_3,CITY_BIG_1,396,624,228,76.0,最短步数基于不可通行地形和桥梁约束；不含天气与停留。
+CITY_SMALL_2,CITY_SMALL_3,CITY_SMALL_1,396,1170,774,258.0,最短步数基于不可通行地形和桥梁约束；不含天气与停留。

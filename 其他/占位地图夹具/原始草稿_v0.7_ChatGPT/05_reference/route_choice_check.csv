@@ -1,0 +1,6 @@
+﻿city_pair,rough_route_id,rough_moves,maintained_route_id,maintained_moves,maintained_extra_moves,choice_valid
+CITY_BIG_1↔CITY_SMALL_1,ROUTE_1,600,ROUTE_2,666,66,True
+CITY_BIG_1↔CITY_SMALL_3,ROUTE_3,414,ROUTE_4,482,68,True
+CITY_BIG_1↔CITY_SMALL_2,ROUTE_5,254,ROUTE_6,306,52,True
+CITY_SMALL_2↔CITY_SMALL_1,ROUTE_7,410,ROUTE_8,432,22,True
+CITY_SMALL_2↔CITY_SMALL_3,ROUTE_9,434,ROUTE_10,498,64,True
