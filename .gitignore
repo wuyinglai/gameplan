@@ -20,3 +20,6 @@ __pycache__/
 
 # ---- 兜底：任何位置的 node_modules ----
 node_modules/
+# 临时/散落文件
+_b*.txt
+_probe*.test.ts
