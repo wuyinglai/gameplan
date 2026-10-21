@@ -285,6 +285,11 @@ npx tsc --noEmit
 | 🔴 **WorkBuddy** | 🔴 **核对代码 + 自己跑一遍测试** → 更新 `开发总览.md §六` 总控台 |
 | 🔴 **项目主** | 🔴 **看 §5.2 的 10 行摘要 + 跑一次 `npx vitest run`** |
 
+> ✅ **Hermes 执行完毕（2026-10-21 19:20）** → `npx vitest run` = **7 个文件 / 62 passed / 2 skipped / 0 failed**，
+> `npx tsc --noEmit` 退出码 0。判据 1~53 逐条有测试（41 / 46 按你的要求 `it.skip` 保留断言）。
+> 回执（含 ① 十行摘要、⑤-A 我拍板的一处设计、**⑤-B 施工图要补的三行**、⑤-C 我修掉的同步脚本谎报）👉
+> **`回复_HERMES_P1_1.3_地图与移动.md`**
+
 🔴 **项目主的人工验收只有一条命令**：
 ```
 cd C:\Users\Administrator\Desktop\游戏大纲\游戏本体
