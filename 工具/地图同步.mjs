@@ -37,14 +37,23 @@ console.log(`\n🔴 数据源：${源.replace(根 + '\\', '')}`);
 console.log(`🔴 md5：${源hash}\n`);
 
 // 找所有阶段目录
+// 🔴 2026-10-21 修：重构后阶段目录叫 p1（以前叫 b01）。原来的正则只认 b\d+，
+//    重命名之后一个目录都扫不到 → 循环空转 → 明明副本不存在却打印「全部一致」。
+//    🔴 一个「扫不到东西就说一切正常」的检查比没有检查更危险，所以这里改两处：
+//    ① 正则同时认 pNN / bNN；② 扫不到任何阶段目录 = 直接报错退出，不许报平安。
 let 目录 = [];
 try {
   目录 = readdirSync(代码根, { withFileTypes: true })
-    .filter(d => d.isDirectory() && /^b\d+$/.test(d.name))
+    .filter(d => d.isDirectory() && /^[bp]\d+$/.test(d.name))
     .map(d => d.name)
     .sort();
 } catch {
   console.error(`❌ 找不到代码目录：${代码根}`);
+  process.exit(1);
+}
+
+if (目录.length === 0) {
+  console.error(`❌ ${代码根} 下一个阶段目录都没有（形如 p1 / b01）—— 这不正常，不许报平安`);
   process.exit(1);
 }
 
