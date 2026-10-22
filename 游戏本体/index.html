@@ -27,6 +27,9 @@
   }
   button:hover { background: #263243; }
   button.接口位 { background: #241e2e; border-style: dashed; }
+  button.天气当前 { background: #123f5c; border-color: #4aa9e0; font-weight: 700; }
+  button.天气项 { background: #17202b; }
+  button.天气掷 { background: #3a2f18; border-color: #b08a3c; }
   .九宫 { display: grid; grid-template-columns: repeat(3, 52px); gap: 6px; }
   .九宫 button { padding: 10px 0; text-align: center; }
   .九宫 .空 { visibility: hidden; }
@@ -47,7 +50,9 @@
   <div class="小字">
     P1 旅行基础（真图 测试地图_v0.7 · 41,131 格）+ P2 商队资源字段。
     🔴 本页<b>只调用</b> src/p1、src/p2 里已有的函数，页面本身没有任何规则。
-    键盘：<b>方向键 / WASD</b> 走一格 · <b>空格</b> 结束当天 · <b>R</b> 重开
+    键盘：<b>方向键 / WASD</b> 走一格 · <b>空格</b> 开始下一天 · <b>R</b> 重开<br>
+    🖱 <b>点地图</b>：点<b>相邻格</b> = 真走一格（扣 15 体力、+2 小时）；点<b>远处格</b> = ⚠ 测试直达
+    （<b>不扣体力不推时间</b>，只是把商队挪过去省时间，不是游戏里的走法）· 点山/水 = 过不去
   </div>
 
   <div class="主区">
@@ -71,6 +76,7 @@
       <div class="小字">整张图（400×400 · 亮点 = 商队 · 黄框 = 起点 · 红框 = 终点）</div>
       <canvas id="小地图" width="400" height="400"></canvas>
       <div class="按钮组">
+        <button id="开始下一天" style="background:#2f6b3f;border-color:#5aab6e;font-weight:700;padding:8px 14px">⏭ 结束今天 · 开始下一天</button>
         <button id="缩小">视野 −</button>
         <button id="放大">视野 +</button>
         <button id="重开">重开（R）</button>
@@ -95,6 +101,11 @@
           <button id="体力清零">测试：体力清成 0</button>
         </div>
       </div>
+
+      <div class="小字" style="margin-top:10px">
+        天气调试 · 点一下 = 强制切成这种天气（标的是<b>出现概率</b> 和 <b>这一段持续几天</b> · 5A §2.1/§2.2）
+      </div>
+      <div class="按钮组" id="天气面板"></div>
 
       <div class="小字" style="margin-top:10px">P2~P7 接口位（现在都该返回「本阶段未实现」）</div>
       <div class="按钮组" id="接口位组"></div>
