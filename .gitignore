@@ -23,3 +23,6 @@ node_modules/
 # 临时/散落文件
 _b*.txt
 _probe*.test.ts
+
+# 脚本输出临时文件
+验收表_*.txt
