@@ -56,6 +56,9 @@ const 画布边长 = 432;
 
 /// 主视野最后一次画出来的布局 —— 「点地图」要把鼠标像素换算回格子坐标，全靠它
 let 主布局 = { 每格: 10, 偏移: 11, 中心x: 0, 中心y: 0 };
+/// 鼠标划过 / 刚点过的格子 —— 画成橙框 / 白闪框，让你确认「我点的是哪一格」
+let 悬停: { x: number; y: number } | null = null;
+let 闪烁: { x: number; y: number } | null = null;
 
 // ---------------------------------------------------------------------------
 // 第 2 段：上色与渲染（判定结果一律问 p1，本页不自己判规则）
@@ -117,13 +120,29 @@ function 画主视野(): void {
   画标记(主画笔, 地图.起点.x, 地图.起点.y, 起x, 起y, '#f0c674', '起', 每格);
   画标记(主画笔, 地图.终点.x, 地图.终点.y, 终x, 终y, '#e05c5c', '终', 每格);
 
-  // 商队本体（正中心）
+  // 商队本体（正中心）—— 🔴 双白框 + 坐标标签，让你一眼看清「我现在是哪一格」
   const [我x, 我y] = 屏幕(中心x, 中心y);
   主画笔.fillStyle = '#ffffff';
   主画笔.beginPath();
   主画笔.arc(我x, 我y, Math.max(3, 每格 / 2.6), 0, Math.PI * 2);
   主画笔.fill();
   方框(主画笔, 我x, 我y, '#ffffff', 每格);
+  方框(主画笔, 我x, 我y, '#ffffff77', 每格 + 6);
+  主画笔.fillStyle = '#ffffff';
+  主画笔.font = '11px sans-serif';
+  主画笔.fillText(`我 (${中心x}, ${中心y})`, 我x + 每格 / 2 + 4, 我y - 每格 / 2 - 3);
+
+  // 鼠标悬停 = 橙色框（告诉你点下去会是哪一格）；刚点过的格子 = 白色外闪框
+  if (悬停 !== null) {
+    const [悬x, 悬y] = 屏幕(悬停.x, 悬停.y);
+    方框(主画笔, 悬x, 悬y, '#e7873c', 每格 + 2);
+    主画笔.fillStyle = '#e7873c';
+    主画笔.fillText(`(${悬停.x}, ${悬停.y})`, 悬x + 每格 / 2 + 4, 悬y + 每格 / 2 + 10);
+  }
+  if (闪烁 !== null) {
+    const [闪x, 闪y] = 屏幕(闪烁.x, 闪烁.y);
+    方框(主画笔, 闪x, 闪y, '#ffffff', 每格 + 8);
+  }
 }
 
 function 画小地图(): void {
@@ -301,7 +320,16 @@ function 复原收工按钮(): void {
   大按钮.textContent = 收工原文;
 }
 
-大按钮.onclick = () => 报('开始下一天', 结束当天(状态));
+/// 「开始下一天」= 测试台的「过一天」，原地站着也能连着按。
+/// 规则里一天只跨一次（判据 24 / 25），要连着过得先清掉幂等标记 —— 小按钮「结束当天」
+/// 保持原样（连点第二次必须被拒，那是你要测的幂等），只有这个大按钮会替你清。
+大按钮.onclick = () => {
+  if (状态.今天已结算) {
+    状态.今天已结算 = false;
+    记日志('⚠ 测试台替你清掉「今天已结算」标记（规则：一天只跨一次）—— 这样原地站着也能连着过天数', '说明');
+  }
+  报('开始下一天', 结束当天(状态));
+};
 
 /// 点地图：相邻格 = 真走一格；远处格 = 测试直达；山/水 = 过不去
 function 点到(x: number, y: number, 从哪: string): void {
@@ -326,13 +354,32 @@ function 点到(x: number, y: number, 从哪: string): void {
   刷新();
 }
 
-主画布.addEventListener('click', (事: MouseEvent) => {
+/// 像素 → 格子坐标（主视野）
+function 主视野格子(事: MouseEvent): { x: number; y: number } {
   const 矩形 = 主画布.getBoundingClientRect();
   const 像素x = (事.clientX - 矩形.left) * (主画布.width / 矩形.width);
   const 像素y = (事.clientY - 矩形.top) * (主画布.height / 矩形.height);
   const 列 = Math.floor((像素x - 主布局.偏移) / 主布局.每格) - 视野半径;
   const 行 = 视野半径 - Math.floor((像素y - 主布局.偏移) / 主布局.每格);
-  点到(主布局.中心x + 列, 主布局.中心y + 行, '主视野');
+  return { x: 主布局.中心x + 列, y: 主布局.中心y + 行 };
+}
+
+/// 鼠标划过就套橙框 + 标坐标 —— 省得你点下去才知道点的是哪一格
+主画布.addEventListener('mousemove', (事: MouseEvent) => {
+  const 格 = 主视野格子(事);
+  const 一样 = 悬停 !== null && 悬停.x === 格.x && 悬停.y === 格.y;
+  if (一样) return;
+  悬停 = 格;
+  画主视野();
+});
+主画布.addEventListener('mouseleave', () => { 悬停 = null; 画主视野(); });
+
+主画布.addEventListener('click', (事: MouseEvent) => {
+  const 格 = 主视野格子(事);
+  悬停 = 格;
+  闪烁 = 格;                                     // 白闪一下，确认「这格我点到了」
+  点到(格.x, 格.y, '主视野');
+  window.setTimeout(() => { 闪烁 = null; 画主视野(); }, 450);
 });
 
 小画布.addEventListener('click', (事: MouseEvent) => {
