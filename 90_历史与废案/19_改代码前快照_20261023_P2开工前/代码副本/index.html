@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>余烬商队 · 人工测试台（P1 旅行 + P2 资源字段）</title>
+<style>
+  /* 独立页面（不是聊天里的 widget），所以自己定深色底 */
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 16px;
+    background: #0e1116; color: #dfe6ef;
+    font: 14px/1.6 "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+  }
+  h1 { font-size: 16px; margin: 0 0 4px; }
+  .小字 { color: #8b97a8; font-size: 12px; }
+  .主区 { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; }
+  .面板 { background: #151b24; border: 1px solid #232c39; border-radius: 8px; padding: 10px 12px; }
+  canvas { display: block; image-rendering: pixelated; background: #0a0d12; border-radius: 4px; }
+  #主视野 { width: 432px; height: 432px; }
+  #小地图 { width: 216px; height: 216px; }
+  .状态 { font-family: Consolas, "Courier New", monospace; white-space: pre; font-size: 13px; }
+  .按钮组 { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  button {
+    background: #1e2836; color: #dfe6ef; border: 1px solid #33405299; border-radius: 6px;
+    padding: 6px 12px; font: inherit; cursor: pointer;
+  }
+  button:hover { background: #263243; }
+  button.接口位 { background: #241e2e; border-style: dashed; }
+  button.天气当前 { background: #123f5c; border-color: #4aa9e0; font-weight: 700; }
+  button.天气项 { background: #17202b; }
+  button.天气掷 { background: #3a2f18; border-color: #b08a3c; }
+  .九宫 { display: grid; grid-template-columns: repeat(3, 52px); gap: 6px; }
+  .九宫 button { padding: 10px 0; text-align: center; }
+  .九宫 .空 { visibility: hidden; }
+  #日志 {
+    margin-top: 12px; height: 260px; overflow-y: auto;
+    background: #0b0f14; border: 1px solid #232c39; border-radius: 8px; padding: 8px 10px;
+    font-family: Consolas, "Courier New", monospace; font-size: 12.5px; white-space: pre-wrap;
+  }
+  .拒绝 { color: #e7873c; }
+  .成功 { color: #7fc97f; }
+  .说明 { color: #8b97a8; }
+  .图例 { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; font-size: 12px; }
+  .图例 span::before { content: "■ "; }
+</style>
+</head>
+<body>
+  <h1>余烬商队 · 人工测试台</h1>
+  <div class="小字">
+    P1 旅行基础（真图 测试地图_v0.7 · 41,131 格）+ P2 商队资源字段。
+    🔴 本页<b>只调用</b> src/p1、src/p2 里已有的函数，页面本身没有任何规则。
+    键盘：<b>方向键 / WASD</b> 走一格 · <b>空格</b> 开始下一天 · <b>R</b> 重开<br>
+    🖱 <b>点地图</b>：点<b>相邻格</b> = 真走一格（扣 15 体力、+2 小时）；点<b>远处格</b> = ⚠ 测试直达
+    （<b>不扣体力不推时间</b>，只是把商队挪过去省时间，不是游戏里的走法）· 点山/水 = 过不去
+  </div>
+
+  <div class="主区">
+    <div class="面板">
+      <div class="小字">周围视野（左下 = 坐标原点，y 向上）</div>
+      <canvas id="主视野" width="432" height="432"></canvas>
+      <div class="图例">
+        <span style="color:#f0c674">大城</span>
+        <span style="color:#d9a441">小城</span>
+        <span style="color:#8ac26b">城镇</span>
+        <span style="color:#5c9e4a">村庄</span>
+        <span style="color:#5aa9e6">驿站</span>
+        <span style="color:#c58bd6">special→营地</span>
+        <span style="color:#2b3644">山（不可通行）</span>
+        <span style="color:#123246">水（不可通行）</span>
+        <span style="color:#6b5f4d">碎石地/桥（可通行）</span>
+      </div>
+    </div>
+
+    <div class="面板">
+      <div class="小字">整张图（400×400 · 亮点 = 商队 · 黄框 = 起点 · 红框 = 终点）</div>
+      <canvas id="小地图" width="400" height="400"></canvas>
+      <div class="按钮组">
+        <button id="开始下一天" style="background:#2f6b3f;border-color:#5aab6e;font-weight:700;padding:8px 14px">⏭ 结束今天 · 开始下一天</button>
+        <button id="缩小">视野 −</button>
+        <button id="放大">视野 +</button>
+        <button id="重开">重开（R）</button>
+      </div>
+    </div>
+
+    <div class="面板" style="min-width: 360px; flex: 1">
+      <div class="小字">状态（每点一次按钮就刷新一次）</div>
+      <div id="状态" class="状态">加载中…</div>
+
+      <div class="按钮组" style="align-items: center">
+        <div class="九宫">
+          <span class="空"></span><button id="往上">↑ 北</button><span class="空"></span>
+          <button id="往左">← 西</button><button id="原地">·</button><button id="往右">→ 东</button>
+          <span class="空"></span><button id="往下">↓ 南</button><span class="空"></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button id="结束当天">结束当天（空格）</button>
+          <button id="跳到明天" style="border-color:#b08a3c">⏩ 跳到明天（测试 · 连推天数看天气）</button>
+          <button id="斜走">测试：斜着走一格</button>
+          <button id="隔两格">测试：隔两格走</button>
+          <button id="出图">测试：往图外走</button>
+          <button id="体力清零">测试：体力清成 0</button>
+          <button id="拨到18点" title="时钟正常只有 7/9/…/17，走一格 2 小时永远正好到 19:00，所以「时间不够」平时撞不到 —— 这个键专门用来测它">测试：把时间拨到 18:00</button>
+        </div>
+      </div>
+
+      <div class="小字" style="margin-top:10px">
+        天气调试 · 点一下 = 强制切成这种天气（标的是<b>出现概率</b> 和 <b>这一段持续几天</b> · 5A §2.1/§2.2）
+      </div>
+      <div class="按钮组" id="天气面板"></div>
+
+      <div class="小字" style="margin-top:10px">P2~P7 接口位（现在都该返回「本阶段未实现」）</div>
+      <div class="按钮组" id="接口位组"></div>
+    </div>
+  </div>
+
+  <div id="日志"></div>
+
+  <script type="module" src="/src/ui/界面.ts"></script>
+</body>
+</html>
