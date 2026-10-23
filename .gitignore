@@ -29,3 +29,5 @@ _probe*.test.ts
 
 # 自验脚本的输出报告（每次跑都生成，不进版本库）
 工具/_selfcheck_out.txt
+工具/_deadlink_out.txt
+工具/_pathfix_out.txt

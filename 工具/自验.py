@@ -191,7 +191,26 @@ else:
         ("%d 份: " % len(touched_frozen)) + ", ".join(touched_frozen[:5]) if touched_frozen else "")
 
 # ═══════════════════════════════════════════════════════════
-# 6 · 关键文件在不在
+# 6 · 死链检查（🔴 指向不存在文件的引用 = 错）
+# ═══════════════════════════════════════════════════════════
+import subprocess
+_dl = os.path.join(BASE, "工具", "_deadlink_out.txt")
+try:
+    r = subprocess.run([sys.executable, os.path.join(BASE, "工具", "死链检查.py")],
+                       cwd=BASE, capture_output=True, text=True,
+                       encoding="utf-8", errors="replace", timeout=120)
+    dl_txt = io.open(_dl, "r", encoding="utf-8").read()
+    # 取「真断链」那一段的条数
+    import re as _re
+    m = _re.search(r"真断链（解不出来 = 错）：(\d+) 条", dl_txt)
+    n_broken = int(m.group(1)) if m else -1
+    add("无死链（引用指向的文件都存在）", n_broken == 0,
+        ("%d 条真断链" % n_broken) if n_broken else "")
+except Exception as e:
+    add("无死链（引用指向的文件都存在）", False, "检查脚本跑失败: %s" % e)
+
+# ═══════════════════════════════════════════════════════════
+# 7 · 关键文件在不在
 # ═══════════════════════════════════════════════════════════
 KEY = [
     "README.md", "开发规划.md",
