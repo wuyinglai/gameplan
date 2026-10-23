@@ -9,6 +9,11 @@ import { describe, it, expect } from 'vitest';
 import { 新建商队 } from './资源';
 import { 日结算02 } from './日结算02';
 import { 断粮扣血百分比, 断水扣血百分比 } from './消耗补给';
+// 🔴 用 vite 的 ?raw 导入读源码 —— 🔴 不用 node:fs
+// 🔴 原因：项目 tsconfig 的 types 只有 vitest/globals，🔴 没有 @types/node，
+// 🔴 用 node:fs 会让 tsc 报 TS2307（🔴 这条我验收 2.A 时漏了）
+import 消耗补给源码 from './消耗补给.ts?raw';
+import 日结算02源码 from './日结算02.ts?raw';
 
 describe('判据 13 · 14 份粮 · 14 人 · 连跑三次（指令 §8.1「归零那一刻不罚」）', () => {
   it('第一次扣到 0 不罚 → 第二次起每天 −2（士气 10 → 8 → 6）', () => {
@@ -61,5 +66,29 @@ describe('补充 · 血上限惩罚本阶段只记数字（指令 §8.3）', () 
     expect(野.角色列表).toBeUndefined();
     // 🔴 断粮只会让已有的三个数变小，不会冒出新字段
     expect(Object.keys(状态).sort()).toEqual(['出战人数', '资源', '车辆数']);
+  });
+});
+
+
+// ============================================================================
+// 判据 14 · 阶段之间不许互相依赖（指令 §0 约束 2）
+// ============================================================================
+
+describe('判据 14 · 阶段之间不许互相依赖', () => {
+  it('资源篮 14　`消耗补给.ts` / `日结算02.ts` 里一行 `src/p1` 都不许有', () => {
+    for (const 源 of [消耗补给源码, 日结算02源码]) {
+      // 🔴 只查**真正的 import 语句**，不看注释 ——
+      // 🔴 注释里写「全文不许出现 from '../p1/...'`」是在警告不要写它，
+      // 🔴 🔴 那句话本身含有 `../p1/` 字样，🔴 如果全文搜就会把自己判成不合格。
+      const 导入行 = 源
+        .split('\n')
+        .filter((L: string) => /^\s*import\b/.test(L))
+        .join('\n');
+      expect(导入行).not.toMatch(/\.\.\/p1\//);
+      expect(导入行).not.toMatch(/['"][^'"]*p1\//);
+      // 🔴 require(...) 同样不行
+      const require行 = 源.split('\n').filter((L: string) => /\brequire\s*\(/.test(L)).join('\n');
+      expect(require行).not.toMatch(/p1/);
+    }
   });
 });
