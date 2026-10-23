@@ -32,3 +32,5 @@ _probe*.test.ts
 其他/工具/_deadlink_out.txt
 其他/工具/_replace_out.txt
 其他/工具/_pathfix_out.txt
+其他/工具/_residual_out.txt
+其他/工具/_phase_out.txt

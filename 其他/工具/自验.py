@@ -147,12 +147,12 @@ add("规划区 = README.md + 开发总览.md（同一文件夹）", not _pl_bad,
 
 # 🔴 10-24 用户定：验收单独一个文件夹 + 开发记录一条指令一个文件
 _acc_bad = []
-if not os.path.isdir(os.path.join(BASE, "B类_开发文档", "验收", "P1")):
-    _acc_bad.append("验收/P1 目录不存在")
-if not os.path.isfile(os.path.join(BASE, "B类_开发文档", "验收", "P1",
-                                   "项目主验收指南_P1.md")):
-    _acc_bad.append("P1 验收指南缺失")
-add("验收单独成文件夹（验收/P1/）", not _acc_bad, "; ".join(_acc_bad))
+if not os.path.isdir(os.path.join(BASE, "B类_开发文档", "验收", "1B")):
+    _acc_bad.append("验收/1B 目录不存在")
+if not os.path.isfile(os.path.join(BASE, "B类_开发文档", "验收", "1B",
+                                   "项目主验收指南_1B.md")):
+    _acc_bad.append("1B 验收指南缺失")
+add("验收单独成文件夹（验收/1B/）", not _acc_bad, "; ".join(_acc_bad))
 
 _rec_bad = []
 _rec_dir = os.path.join(BASE, "B类_开发文档", "开发记录")
@@ -259,6 +259,21 @@ add("A 类文件全部只读上锁", not not_locked,
     ("%d 个没锁（已自动补上）: " % len(not_locked)) + ", ".join(not_locked[:5]) if not_locked else "")
 
 # ═══════════════════════════════════════════════════════════
+# 3之二 · 旧口径残留（🔴 2026-10-24 加 —— 改口径最容易漏的地方）
+# ═══════════════════════════════════════════════════════════
+import subprocess as _sp2
+_res_out = os.path.join(TOOLDIR, "_residual_out.txt")
+try:
+    _sp2.run([sys.executable, os.path.join(TOOLDIR, "残留扫描.py")],
+             cwd=BASE, capture_output=True, timeout=120)
+    _rt = io.open(_res_out, "r", encoding="utf-8").read()
+    _n = len([x for x in _rt.split("\n") if x.strip() and "干净" not in x])
+    add("旧口径无残留（P1/INT/2.A 等）", _n == 0,
+        ("%d 处: " % _n) + _rt.replace("\n", " | ")[:120] if _n else "")
+except Exception as e:
+    add("旧口径无残留（P1/INT/2.A 等）", False, "扫描脚本跑失败: %s" % e)
+
+# ═══════════════════════════════════════════════════════════
 # 4 · 编码 / 行尾
 # ═══════════════════════════════════════════════════════════
 bom_files, mixed_eol = [], []
@@ -332,15 +347,15 @@ KEY = [
     "B类_开发文档/开发规划/开发总览.md",
     "B类_开发文档/基础文档/1B_旅行基础.md",
     "B类_开发文档/基础文档/2B_商队资源与地点服务.md",
-    "B类_开发文档/基础文档/第01B类_旅行基础.md",
+    "B类_开发文档/基础文档/第1B类_旅行基础.md",
     "B类_开发文档/基础文档/操作归属总表.md",
     "B类_开发文档/待裁定清单.md",
     "B类_开发文档/开发记录/README.md",
     "B类_开发文档/开发记录/1.0_新代码基础_20261020.md",
     "B类_开发文档/开发记录/1.4_全面验收_20261021.md",
-    "B类_开发文档/开发记录/2.A_商队消耗_20261023.md",
-    "B类_开发文档/验收/P1/项目主验收指南_P1.md",
-    "B类_开发文档/验收/P1/P1验收表.md",
+    "B类_开发文档/开发记录/2.1_商队消耗_20261023.md",
+    "B类_开发文档/验收/1B/项目主验收指南_1B.md",
+    "B类_开发文档/验收/1B/1B验收表.md",
     "其他/README.md",
     "其他/AI交流/README.md",
     "其他/工具/自验.py",
