@@ -26,9 +26,10 @@ try:
 except Exception:
     pass
 
-BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+TOOLDIR = os.path.dirname(os.path.abspath(__file__))
 SKIP_DIRS = ("node_modules", ".git", "dist", ".vite", "__pycache__")
-LIVE_DIRS = ["A类文件", "B类_开发文档", "AI交流", "项目管理", "工具", "游戏本体"]
+LIVE_DIRS = ["A类文件", "B类_开发文档", "其他", "游戏本体"]
 
 PAT_QUOTE = re.compile(r"`([^`\n]{2,140})`")
 # 🔴 路径必须从「词首」开始 —— 不能从中间截断
@@ -148,7 +149,7 @@ def all_md():
             for fn in fns:
                 if fn.endswith(".md"):
                     out.append(os.path.join(dp, fn))
-    for fn in ("README.md", "开发规划.md"):
+    for fn in ("README.md",):
         p = os.path.join(BASE, fn)
         if os.path.isfile(p):
             out.append(p)
@@ -230,7 +231,7 @@ lines.append("=" * 78)
 lines.append("")
 
 report = "\n".join(lines)
-with io.open(os.path.join(BASE, "工具", "_deadlink_out.txt"), "w",
+with io.open(os.path.join(TOOLDIR, "_deadlink_out.txt"), "w",
              encoding="utf-8", newline="\n") as fh:
     fh.write(report)
 print(report)

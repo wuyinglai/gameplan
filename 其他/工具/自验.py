@@ -29,19 +29,18 @@ try:
 except Exception:
     pass
 
-BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+TOOLDIR = os.path.dirname(os.path.abspath(__file__))
 
 # ── 活文件区 = 需要保持最新的 ──────────────────────────────
 ACTIVE_DIRS = [
     "A类文件",
     "B类_开发文档",
-    "AI交流",
-    "项目管理",
-    "工具",
+    "其他",
     "游戏本体",
 ]
 # ── 历史区 = 快照原样，不该被改 ────────────────────────────
-FROZEN_DIRS = ["90_历史与废案", "01_Demo计划", "00_废弃清单", ".workbuddy", "其他"]
+FROZEN_DIRS = ["90_历史与废案", ".workbuddy"]
 
 results = []
 
@@ -102,22 +101,42 @@ def git_status():
 # 1 · 目录结构
 # ═══════════════════════════════════════════════════════════
 root_files = sorted(f for f in os.listdir(BASE) if os.path.isfile(os.path.join(BASE, f)))
-expected_root = sorted([".gitignore", "README.md", "开发规划.md"])
-add("根目录只留 3 个文件", root_files == expected_root,
+expected_root = sorted([".gitignore", "README.md"])
+add("根目录只留 2 个文件", root_files == expected_root,
     "实际: " + (", ".join(root_files) if root_files else "(空)"))
 
-for d in ["A类文件/正文", "A类文件/附件", "B类_开发文档", "AI交流", "项目管理", "工具", "游戏本体"]:
+root_dirs = sorted(d for d in os.listdir(BASE)
+                   if os.path.isdir(os.path.join(BASE, d))
+                   and not d.startswith("."))
+expected_dirs = sorted(["90_历史与废案", "A类文件", "B类_开发文档", "其他", "游戏本体"])
+add("根目录只留 5 个文件夹", root_dirs == expected_dirs,
+    "实际: " + (", ".join(root_dirs) if root_dirs else "(空)"))
+
+for d in ["A类文件/正文", "A类文件/附件", "B类_开发文档/基础文档",
+          "B类_开发文档/开发规划", "B类_开发文档/项目主", "B类_开发文档/AI交流",
+          "其他/工具", "其他/AI交流", "游戏本体"]:
     add("目录存在: " + d, os.path.isdir(os.path.join(BASE, d)))
 
 # ═══════════════════════════════════════════════════════════
 # 2 · 路径引用漏改（🔴 最容易出事）
 # ═══════════════════════════════════════════════════════════
-STALE = ["0A_权威系统文档", "A类文件附件"]
+STALE = ["0A_权威系统文档", "A类文件附件", "项目管理\\", "项目管理/",
+         "01_Demo计划\\", "01_Demo计划/", "00_废弃清单\\", "00_废弃清单/",
+         "工具\\开发记录", "工具/开发记录", "工具\\地图同步", "工具/地图同步",
+         "工具\\自验", "工具/自验", "工具\\死链", "工具/死链",
+         # 🔴 AI交流 的旧引用 —— 判据是「前面没有别的目录」
+         #    （`B类_开发文档\AI交流\HERMES_x.md` 是新路径，不算残留）
+         "AI交流\\HERMES_", "AI交流\\回复_", "AI交流\\CHATGPT_", "AI交流\\地图体检"]
+STALE_BARE = ["AI交流/HERMES_", "AI交流/回复_", "AI交流/CHATGPT_", "AI交流/地图体检"]
 # 允许出现旧路径的地方：目录重组说明段落（含箭头）
 ALLOW_FILES = {
     os.path.join(BASE, "README.md"),
     os.path.join(BASE, "A类文件", "README.md"),
-    os.path.join(BASE, "开发规划.md"),
+    os.path.join(BASE, "其他", "README.md"),
+    os.path.join(BASE, "其他", "AI交流", "README.md"),
+    os.path.join(BASE, "B类_开发文档", "开发规划.md"),
+    # 🔴 B 类 README 里写的 `AI交流\HERMES_*.md` 是**相对本目录的合法路径**
+    os.path.join(BASE, "B类_开发文档", "README.md"),
 }
 
 stale_hits = []
@@ -130,15 +149,29 @@ for f in all_md(ACTIVE_DIRS):
     for i, line in enumerate(t.splitlines(), 1):
         for s in STALE:
             if s in line:
+                # 🔴 排除「新路径里恰好含旧串」的情况
+                #    `B类_开发文档\AI交流\HERMES_x.md` 里的 `AI交流\HERMES_` 不算残留
+                idx = line.find(s)
+                prefix = line[:idx]
+                if prefix.endswith("B类_开发文档\\") or prefix.endswith("B类_开发文档/"):
+                    continue
+                if prefix.endswith("其他\\") or prefix.endswith("其他/"):
+                    continue
+                stale_hits.append("%s:%d  [%s]" % (os.path.relpath(f, BASE), i, s))
+        for s in STALE_BARE:
+            if s in line:
+                idx = line.find(s)
+                prefix = line[:idx]
+                if prefix.endswith("B类_开发文档/") or prefix.endswith("其他/"):
+                    continue
                 stale_hits.append("%s:%d  [%s]" % (os.path.relpath(f, BASE), i, s))
 add("活文件区无旧路径残留", not stale_hits,
     ("%d 处: " % len(stale_hits)) + " | ".join(stale_hits[:5]) if stale_hits else "")
 
 # 入口文件指向的目录要真实存在
-entry = read_text(os.path.join(BASE, "开发规划.md")) or ""
+entry = read_text(os.path.join(BASE, "README.md")) or ""
 missing_ref = []
-for m in ("A类文件", "B类_开发文档", "项目管理", "AI交流", "工具", "游戏本体",
-          "90_历史与废案", "00_废弃清单", "01_Demo计划"):
+for m in ("A类文件", "B类_开发文档", "其他", "游戏本体", "90_历史与废案"):
     if m in entry and not os.path.isdir(os.path.join(BASE, m)):
         missing_ref.append(m)
 add("入口文件指向的目录都存在", not missing_ref, ", ".join(missing_ref))
@@ -157,8 +190,15 @@ for dp, dns, fns in os.walk(os.path.join(BASE, "A类文件")):
             readonly = not (os.stat(p).st_mode & 0o200)
         if not readonly:
             not_locked.append(os.path.relpath(p, BASE))
+            # 🔴 自动补锁（git checkout 回滚会丢只读属性 —— 自己补回来）
+            #    🔴 Windows 上 os.chmod 改不了只读属性 —— 必须用 attrib +R
+            try:
+                import subprocess as _sp
+                _sp.run(["attrib", "+R", p], capture_output=True)
+            except Exception:
+                pass
 add("A 类文件全部只读上锁", not not_locked,
-    ("%d 个没锁: " % len(not_locked)) + ", ".join(not_locked[:5]) if not_locked else "")
+    ("%d 个没锁（已自动补上）: " % len(not_locked)) + ", ".join(not_locked[:5]) if not_locked else "")
 
 # ═══════════════════════════════════════════════════════════
 # 4 · 编码 / 行尾
@@ -194,13 +234,12 @@ else:
 # 6 · 死链检查（🔴 指向不存在文件的引用 = 错）
 # ═══════════════════════════════════════════════════════════
 import subprocess
-_dl = os.path.join(BASE, "工具", "_deadlink_out.txt")
+_dl = os.path.join(TOOLDIR, "_deadlink_out.txt")
 try:
-    r = subprocess.run([sys.executable, os.path.join(BASE, "工具", "死链检查.py")],
+    r = subprocess.run([sys.executable, os.path.join(TOOLDIR, "死链检查.py")],
                        cwd=BASE, capture_output=True, text=True,
                        encoding="utf-8", errors="replace", timeout=120)
     dl_txt = io.open(_dl, "r", encoding="utf-8").read()
-    # 取「真断链」那一段的条数
     import re as _re
     m = _re.search(r"真断链（解不出来 = 错）：(\d+) 条", dl_txt)
     n_broken = int(m.group(1)) if m else -1
@@ -213,7 +252,7 @@ except Exception as e:
 # 7 · 关键文件在不在
 # ═══════════════════════════════════════════════════════════
 KEY = [
-    "README.md", "开发规划.md",
+    "README.md",
     "A类文件/README.md",
     "A类文件/正文/README.md",
     "A类文件/正文/铁律总纲.md",
@@ -230,13 +269,19 @@ KEY = [
     "A类文件/正文/第8A类_灰烬生态系统_权威口径.md",
     "A类文件/正文/第10A类_订单与贸易_权威口径.md",
     "A类文件/附件/README.md",
+    "B类_开发文档/README.md",
+    "B类_开发文档/开发规划.md",
     "B类_开发文档/开发规划/开发总览.md",
+    "B类_开发文档/开发规划/1B_旅行基础.md",
+    "B类_开发文档/开发规划/2B_商队资源与地点服务.md",
     "B类_开发文档/基础文档/第01B类_旅行基础.md",
     "B类_开发文档/基础文档/操作归属总表.md",
-    "项目管理/项目主待裁定清单.md",
-    "项目管理/开发记录.md",
-    "项目管理/验收/项目主验收指南_P1.md",
-    "AI交流/README.md",
+    "B类_开发文档/项目主/项目主待裁定清单.md",
+    "B类_开发文档/项目主/开发记录.md",
+    "B类_开发文档/项目主/验收/项目主验收指南_P1.md",
+    "其他/README.md",
+    "其他/AI交流/README.md",
+    "其他/工具/自验.py",
 ]
 miss = [k for k in KEY if not os.path.isfile(os.path.join(BASE, k))]
 add("关键文件齐全（%d 项）" % len(KEY), not miss, ", ".join(miss))
@@ -263,7 +308,7 @@ lines.append("")
 report = "\n".join(lines)
 
 # 写一份 UTF-8 报告（ASCII 文件名 —— 避免任何编码问题）
-out_path = os.path.join(BASE, "工具", "_selfcheck_out.txt")
+out_path = os.path.join(TOOLDIR, "_selfcheck_out.txt")
 with io.open(out_path, "w", encoding="utf-8", newline="\n") as f:
     f.write(report)
 
