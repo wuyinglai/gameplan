@@ -113,9 +113,30 @@ add("根目录只留 5 个文件夹", root_dirs == expected_dirs,
     "实际: " + (", ".join(root_dirs) if root_dirs else "(空)"))
 
 for d in ["A类文件/正文", "A类文件/附件", "B类_开发文档/基础文档",
-          "B类_开发文档/开发规划", "B类_开发文档/项目主", "B类_开发文档/AI交流",
+          "B类_开发文档/项目主", "B类_开发文档/AI交流",
           "其他/工具", "其他/AI交流", "游戏本体"]:
     add("目录存在: " + d, os.path.isdir(os.path.join(BASE, d)))
+
+# 🔴 10-24 用户定：同一个阶段的两份文件（1B 阶段规划 ↔ 第01B类 施工图）
+#    必须同在 基础文档\ —— 拆开就会"找文件要找半天"
+#    🔴 施工图本身可以还没建（待建不算错），只查"建了的话在不在同一目录"
+_pairs = [("基础文档/1B_旅行基础.md", "基础文档/第01B类_旅行基础.md"),
+          ("基础文档/2B_商队资源与地点服务.md", "基础文档/第02B类_商队资源与地点服务.md")]
+_same_dir_bad = []
+for a, b in _pairs:
+    pa = os.path.join(BASE, "B类_开发文档", a)
+    pb = os.path.join(BASE, "B类_开发文档", b)
+    if os.path.isfile(pa) and os.path.isfile(pb):
+        if os.path.dirname(pa) != os.path.dirname(pb):
+            _same_dir_bad.append("%s 与 %s 不同目录" % (a, b))
+    if not os.path.isfile(pa):
+        _same_dir_bad.append("阶段规划缺失: %s" % a)
+add("阶段规划与施工图同目录（1B/2B）", not _same_dir_bad,
+    "; ".join(_same_dir_bad))
+
+# 🔴 10-24 用户定：开发规划\ 子目录已撤掉（1B/2B 都在基础文档\）
+add("开发规划\\ 子目录已撤掉",
+    not os.path.isdir(os.path.join(BASE, "B类_开发文档", "开发规划")))
 
 # ═══════════════════════════════════════════════════════════
 # 2 · 路径引用漏改（🔴 最容易出事）
@@ -156,6 +177,10 @@ for f in all_md(ACTIVE_DIRS):
                 if prefix.endswith("B类_开发文档\\") or prefix.endswith("B类_开发文档/"):
                     continue
                 if prefix.endswith("其他\\") or prefix.endswith("其他/"):
+                    continue
+                # 🔴 相对路径（`..\AI交流\HERMES_x.md`）是**合法的新引用**
+                #    —— 从引用方文件所在目录往上走就是目标目录
+                if prefix.endswith("..\\") or prefix.endswith("../"):
                     continue
                 stale_hits.append("%s:%d  [%s]" % (os.path.relpath(f, BASE), i, s))
         for s in STALE_BARE:
@@ -271,9 +296,9 @@ KEY = [
     "A类文件/附件/README.md",
     "B类_开发文档/README.md",
     "B类_开发文档/开发规划.md",
-    "B类_开发文档/开发规划/开发总览.md",
-    "B类_开发文档/开发规划/1B_旅行基础.md",
-    "B类_开发文档/开发规划/2B_商队资源与地点服务.md",
+    "B类_开发文档/开发总览.md",
+    "B类_开发文档/基础文档/1B_旅行基础.md",
+    "B类_开发文档/基础文档/2B_商队资源与地点服务.md",
     "B类_开发文档/基础文档/第01B类_旅行基础.md",
     "B类_开发文档/基础文档/操作归属总表.md",
     "B类_开发文档/项目主/项目主待裁定清单.md",
