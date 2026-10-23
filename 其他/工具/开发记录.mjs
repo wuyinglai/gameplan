@@ -8,8 +8,8 @@
 //   🔴 所以：所有数字**必须从命令输出里抄**，不许手打、不许凭记忆。
 //
 // 🔴 用法（在 游戏大纲\ 目录下）：
-//   node 工具/开发记录.mjs            ← 生成记录到 开发记录.md
-//   node 工具/开发记录.mjs --print    ← 只打印，不写文件
+//   node 其他/工具/开发记录.mjs            ← 生成记录到 B类_开发文档/开发记录/README.md 的自动区
+//   node 其他/工具/开发记录.mjs --print    ← 只打印，不写文件
 //
 // 🔴 它只读不写代码目录，跑的是真命令：
 //   git（版本 / 改了什么）· vitest（测试数）· tsc（类型检查）
@@ -20,7 +20,8 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-const 根 = join(dirname(fileURLToPath(import.meta.url)), '..');
+// 🔴 脚本在 其他/工具/ —— 仓库根要往上数两级
+const 根 = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const 只打印 = process.argv.includes('--print');
 
 function 跑(命令, cwd = 根) {
@@ -142,7 +143,7 @@ const 现在 = (() => {
 })();
 
 const 记录 = `
-> 🔴 **本块由 \`node 工具/开发记录.mjs\` 自动生成 · ${现在}**
+> 🔴 **本块由 \`node 其他/工具/开发记录.mjs\` 自动生成 · ${现在}**
 > 🔴 **所有数字来自命令输出，不许手改** —— 要更新就跑一次脚本。
 
 ### 🔴 当前版本
@@ -170,7 +171,7 @@ ${归类(代码变更) || '  （无）'}
 
 ### 🔴 待处理问题
 \`\`\`
-${待办.length ? 待办.join('\n') : '  （源码里没扫到待办标记 —— 🔴 不代表没有，见开发记录.md 的人工登记区）'}
+${待办.length ? 待办.join('\n') : '  （源码里没扫到待办标记 —— 🔴 不代表没有，见 `B类_开发文档/待裁定清单.md`）'}
 \`\`\`
 
 ### 🔴 下一步
@@ -180,7 +181,7 @@ ${下一步}
 if (只打印) {
   console.log(记录);
 } else {
-  const 目标 = join(根, '开发记录.md');
+  const 目标 = join(根, 'B类_开发文档', '开发记录', 'README.md');
   let 现有 = existsSync(目标) ? readFileSync(目标, 'utf8') : '';
   // 🔴 只替换「自动区」这一段，历史区不动
   const 标记 = '<!-- AUTO:BEGIN -->';

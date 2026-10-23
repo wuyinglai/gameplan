@@ -113,7 +113,8 @@ add("根目录只留 5 个文件夹", root_dirs == expected_dirs,
     "实际: " + (", ".join(root_dirs) if root_dirs else "(空)"))
 
 for d in ["A类文件/正文", "A类文件/附件", "B类_开发文档/基础文档",
-          "B类_开发文档/项目主", "B类_开发文档/AI交流",
+          "B类_开发文档/开发规划", "B类_开发文档/验收", "B类_开发文档/开发记录",
+          "B类_开发文档/AI交流",
           "其他/工具", "其他/AI交流", "游戏本体"]:
     add("目录存在: " + d, os.path.isdir(os.path.join(BASE, d)))
 
@@ -134,9 +135,39 @@ for a, b in _pairs:
 add("阶段规划与施工图同目录（1B/2B）", not _same_dir_bad,
     "; ".join(_same_dir_bad))
 
-# 🔴 10-24 用户定：开发规划\ 子目录已撤掉（1B/2B 都在基础文档\）
-add("开发规划\\ 子目录已撤掉",
-    not os.path.isdir(os.path.join(BASE, "B类_开发文档", "开发规划")))
+# 🔴 10-24 用户定：开发规划与开发总览合并成一个文件夹（规划区）
+#    🔴 README.md = 入口看板 · 开发总览.md = 规则手册 —— 两份文件不合并成一个（866 行会把看板埋掉）
+_pl = os.path.join(BASE, "B类_开发文档", "开发规划")
+_pl_bad = []
+for f in ("README.md", "开发总览.md"):
+    if not os.path.isfile(os.path.join(_pl, f)):
+        _pl_bad.append("缺 " + f)
+add("规划区 = README.md + 开发总览.md（同一文件夹）", not _pl_bad,
+    "; ".join(_pl_bad))
+
+# 🔴 10-24 用户定：验收单独一个文件夹 + 开发记录一条指令一个文件
+_acc_bad = []
+if not os.path.isdir(os.path.join(BASE, "B类_开发文档", "验收", "P1")):
+    _acc_bad.append("验收/P1 目录不存在")
+if not os.path.isfile(os.path.join(BASE, "B类_开发文档", "验收", "P1",
+                                   "项目主验收指南_P1.md")):
+    _acc_bad.append("P1 验收指南缺失")
+add("验收单独成文件夹（验收/P1/）", not _acc_bad, "; ".join(_acc_bad))
+
+_rec_bad = []
+_rec_dir = os.path.join(BASE, "B类_开发文档", "开发记录")
+if not os.path.isfile(os.path.join(_rec_dir, "README.md")):
+    _rec_bad.append("开发记录/README.md 缺失")
+else:
+    _recs = [f for f in os.listdir(_rec_dir)
+              if f.endswith(".md") and f != "README.md"]
+    if len(_recs) < 7:
+        _rec_bad.append("只有 %d 条记录（应 ≥7 条新代码时代记录）" % len(_recs))
+add("开发记录一条指令一个文件（≥7 条）", not _rec_bad, "; ".join(_rec_bad))
+
+# 🔴 项目主\ 目录已撤掉（拆成 验收\ + 开发记录\ + 待裁定清单.md）
+add("项目主\\ 子目录已撤掉",
+    not os.path.isdir(os.path.join(BASE, "B类_开发文档", "项目主")))
 
 # ═══════════════════════════════════════════════════════════
 # 2 · 路径引用漏改（🔴 最容易出事）
@@ -145,6 +176,8 @@ STALE = ["0A_权威系统文档", "A类文件附件", "项目管理\\", "项目�
          "01_Demo计划\\", "01_Demo计划/", "00_废弃清单\\", "00_废弃清单/",
          "工具\\开发记录", "工具/开发记录", "工具\\地图同步", "工具/地图同步",
          "工具\\自验", "工具/自验", "工具\\死链", "工具/死链",
+         # 🔴 10-24 已撤掉 / 已拆分的目录
+         "项目主\\", "项目主/",
          # 🔴 AI交流 的旧引用 —— 判据是「前面没有别的目录」
          #    （`B类_开发文档\AI交流\HERMES_x.md` 是新路径，不算残留）
          "AI交流\\HERMES_", "AI交流\\回复_", "AI交流\\CHATGPT_", "AI交流\\地图体检"]
@@ -295,15 +328,19 @@ KEY = [
     "A类文件/正文/第10A类_订单与贸易_权威口径.md",
     "A类文件/附件/README.md",
     "B类_开发文档/README.md",
-    "B类_开发文档/开发规划.md",
-    "B类_开发文档/开发总览.md",
+    "B类_开发文档/开发规划/README.md",
+    "B类_开发文档/开发规划/开发总览.md",
     "B类_开发文档/基础文档/1B_旅行基础.md",
     "B类_开发文档/基础文档/2B_商队资源与地点服务.md",
     "B类_开发文档/基础文档/第01B类_旅行基础.md",
     "B类_开发文档/基础文档/操作归属总表.md",
-    "B类_开发文档/项目主/项目主待裁定清单.md",
-    "B类_开发文档/项目主/开发记录.md",
-    "B类_开发文档/项目主/验收/项目主验收指南_P1.md",
+    "B类_开发文档/待裁定清单.md",
+    "B类_开发文档/开发记录/README.md",
+    "B类_开发文档/开发记录/1.0_新代码基础_20261020.md",
+    "B类_开发文档/开发记录/1.4_全面验收_20261021.md",
+    "B类_开发文档/开发记录/2.A_商队消耗_20261023.md",
+    "B类_开发文档/验收/P1/项目主验收指南_P1.md",
+    "B类_开发文档/验收/P1/P1验收表.md",
     "其他/README.md",
     "其他/AI交流/README.md",
     "其他/工具/自验.py",
