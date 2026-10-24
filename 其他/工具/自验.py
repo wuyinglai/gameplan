@@ -20,6 +20,7 @@
 """
 import io
 import os
+import re
 import subprocess
 import sys
 
@@ -201,6 +202,9 @@ for f in all_md(ACTIVE_DIRS):
     if t is None:
         continue
     for i, line in enumerate(t.splitlines(), 1):
+        # 🔴 10-24 体检批：逐字引用的 commit 标题（`0a535b8 refactor(B类): 项目主\ 拆开…`）是历史事实，不算残留
+        if re.match(r"^\s*[0-9a-f]{7} ", line):
+            continue
         for s in STALE:
             if s in line:
                 # 🔴 排除「新路径里恰好含旧串」的情况

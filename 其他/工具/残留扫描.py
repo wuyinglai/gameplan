@@ -3,7 +3,7 @@
 旧口径残留扫描（自验项用）
 =================================
 查这些旧写法有没有漏改：
-  阶段编号 P1..P7 · 最终整合 INT · 2.A~2.D · 第01B类 · 阶段P1_
+  阶段编号 P1..P9 · 最终整合 INT · 2.A~2.D · 第01B类 · 阶段P1_
   HERMES_P1/P2 · 验收/P1 · 项目主\\ · 旧代码与新代码节 · 中阶段序列
 
 白名单（这些地方出现旧写法是对的）：
@@ -20,7 +20,7 @@ BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 LIVE = ["A类文件", "B类_开发文档", "其他", "游戏本体"]
 
 CHECKS = [
-    ("阶段编号 P1..P7", r"(?<![0-9A-Za-z.])P[1-7](?![0-9A-Za-z])"),
+    ("阶段编号 P1..P9", r"(?<![0-9A-Za-z.])P[1-9](?![0-9A-Za-z])"),
     ("最终整合 INT", r"(?<![0-9A-Za-z])INT(?![0-9A-Za-z])"),
     ("2.A~2.D 编号", r"(?<![0-9A-Za-z.])2\.[A-D](?![0-9A-Za-z])"),
     ("第01B类/第02B类", r"第0[12]B类"),
@@ -37,9 +37,11 @@ CHECKS = [
 # 🔴 白名单：文件相对路径 → 允许出现旧写法的正则
 WHITELIST = [
     (r"^A类文件/正文/第5A类_天气与事件系统_权威口径\.md$",
-     r"^\|\s*P[1-7]\s*\|"),           # 事件编号表
+     r"^\|\s*P[1-9]\s*\|"),           # 事件编号表
     (r"^B类_开发文档/开发规划/修订记录\.md$", None),  # 整份都是历史描述
     (r"^其他/AI交流/CHATGPT_.*\.md$", None),          # ChatGPT 规划原件
+    # 🔴 10-24 体检批：开发记录 README 的 AUTO 块逐字引用 commit 标题（历史事实，不改写）
+    (r"^B类_开发文档/开发记录/README\.md$", r"^\s*[0-9a-f]{7} "),
 ]
 
 
@@ -55,6 +57,9 @@ def whitelisted(rel, line):
         if ("不用 P1" in line or "为什么不用 P1" in line
                 or "P1 / P2" in line or "P1 / P2）" in line):
             return True
+    # 🔴 10-24 体检批：仓库外真实备份目录名（Desktop\游戏本体_备份_20261023_P2_2A开工前\）是历史事实
+    if "游戏本体_备份_" in line:
+        return True
     return False
 
 
