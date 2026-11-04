@@ -109,8 +109,9 @@ add("根目录只留 2 个文件", root_files == expected_root,
 root_dirs = sorted(d for d in os.listdir(BASE)
                    if os.path.isdir(os.path.join(BASE, d))
                    and not d.startswith("."))
-expected_dirs = sorted(["90_历史与废案", "A类文件", "B类_开发文档", "其他", "游戏本体"])
-add("根目录只留 5 个文件夹", root_dirs == expected_dirs,
+# 🔴 2026-10-28：项目主令建「A类文件（新）」按系统迁移重组（迁移期并存，旧 A 类仍为权威源）——迁移完成裁定旧文件夹去留后移出本清单
+expected_dirs = sorted(["90_历史与废案", "A类文件", "A类文件（新）", "B类_开发文档", "其他", "游戏本体"])
+add("根目录只留 6 个文件夹（含迁移期 A类文件（新））", root_dirs == expected_dirs,
     "实际: " + (", ".join(root_dirs) if root_dirs else "(空)"))
 
 for d in ["A类文件/正文", "A类文件/附件", "B类_开发文档/基础文档",
