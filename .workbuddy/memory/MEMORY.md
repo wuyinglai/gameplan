@@ -119,6 +119,10 @@
 - 🔴 **补丁数据文件里绝不能有字面换行**（new 值一律写字面 `\n`，或改用下面的「整块插入」）—— 否则后续行被当成新规则、`old` 为空 → `Matches('')` 几万次 → 跑到超时（exit -1 且无日志）。
 - 🔴 **PowerShell `[string]::Join("`n", $arrayList)` 会把 ArrayList 对象本身转成字符串**（得到 `"System.Collections.ArrayList"` 并写进文件）→ **一律用 `-join`**；改完 grep 文件里有无 `System.Collections`。
 - ✅ **整块插入大段中文的可靠姿势**：数据文件用 `===文件名===` 分块（块内可多行）→ 脚本按块读、`-join "`n"` → `Regex.Match($t,'\A(?s)(.*?)\r?\n---\r?\n')` 定位抬头分隔线 → `Substring` 拼接插入。
+- 🔴 **代理端口有三个，别只试 git 配的那个**（2026-11-09 实测）：git 配 **7897** · 环境变量 **59000** · Clash 还在听 **7892**。三个都可能不同步失效 —— 🔴 **挨个试**。
+- 🔴 **`git status --short` 的中文路径是八进制转义**（`"\346\270\233..."`）—— 🔴 **不是乱码**；要真名用 Python `git status --porcelain -z`。`git ls-files "*.bat"` 同样转义。
+- 🔴 **本机 git 推不上去时，用 WebFetch 查远端** —— 🔴 WebFetch 走 WorkBuddy 服务端出口，**不经本机代理**，🔴 所以它能开 GitHub 而 git 不能。
+- 🔴 **github.com:22（SSH）通常通**，🔴 但本机没 `~/.ssh/` 密钥 —— 🔴 要用得先生成并加到 GitHub 账号。
 
 ## 锚点
 
