@@ -281,14 +281,18 @@ except Exception as e:
 # ═══════════════════════════════════════════════════════════
 # 4 · 编码 / 行尾
 # ═══════════════════════════════════════════════════════════
-bom_files, mixed_eol = [], []
+bom_files, mixed_eol, mojibake_files = [], [], []
 for f in all_md(ACTIVE_DIRS):
     raw = open(f, "rb").read()
     if raw.startswith(b"\xef\xbb\xbf"):
         bom_files.append(os.path.relpath(f, BASE))
     if b"\r\n" in raw and b"\n" in raw.replace(b"\r\n", b""):
         mixed_eol.append(os.path.relpath(f, BASE))
+    # 🔴 2026-11-19 加：U+FFFD 乱码字符（🔴 写文件时字符被破坏，🔴 肉眼很难发现）
+    if b"\xef\xbf\xbd" in raw:
+        mojibake_files.append(os.path.relpath(f, BASE))
 add("无 UTF-8 BOM", not bom_files, ", ".join(bom_files[:5]))
+add("无乱码字符（U+FFFD）", not mojibake_files, ", ".join(mojibake_files[:5]))
 add("单文件行尾统一（不混 CRLF/LF）", not mixed_eol,
     ("%d 个: " % len(mixed_eol)) + ", ".join(mixed_eol[:5]) if mixed_eol else "")
 
